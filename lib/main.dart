@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'BarItems/outside_page.dart';
+import 'BarItems/contacts_page.dart'; // Import the contacts page
 
 void main() {
   runApp(const MyApp());
@@ -33,10 +35,15 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
+  final PageController _pageController = PageController();
+  final List<Widget> _pages = [
+    OutsidePage(),
+    ContactsPage(), // Use the ContactsPage directly
+    Placeholder(),
+  ];
+
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    _pageController.jumpToPage(index);
   }
 
   @override
@@ -54,18 +61,24 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: Placeholder(), // You can replace this with your actual content
+      body: PageView(
+        controller: _pageController,
+        children: _pages,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.nature_people_sharp),
-            label: 'Cafe',
+            icon: Icon(Icons.people_sharp),
+            label: 'Outside',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.hail),
-            label: 'Chat',
+            icon: Icon(Icons.waving_hand_sharp),
+            label: 'Contacts',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
