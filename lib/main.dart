@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'BarItems/outside_page.dart';
-import 'BarItems/contacts_page.dart'; // Import the contacts page
+import 'BarItems/rooms_page.dart';
+import 'BarItems/yourself_page.dart';
+import 'package:en_masse_app/Authentication/authentication.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Check if the user is already authenticated
+  bool isAuthenticated = await AuthService.checkAuthentication();
+
+  runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  final bool isAuthenticated;
+
+  const MyApp({Key? key, required this.isAuthenticated}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Enteract'),
+      home: isAuthenticated ? MyHomePage(title: 'Enteract') : LoginPage(),
     );
   }
 }
@@ -37,9 +46,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final PageController _pageController = PageController();
   final List<Widget> _pages = [
+    RoomsPage(),
     OutsidePage(),
-    ContactsPage(), // Use the ContactsPage directly
-    Placeholder(),
+    YourselfPage(),
   ];
 
   void _onItemTapped(int index) {

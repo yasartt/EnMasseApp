@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'card_details_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'chat_page.dart';
 
 class FirstTabContent extends StatelessWidget {
   final List<Map<String, String>> cardList;
@@ -26,7 +27,7 @@ class FirstTabContent extends StatelessWidget {
               ),
               padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
               child: Text(
-                'Currently Enrolled Rooms',
+                'Enrolled Rooms',
                 style: GoogleFonts.pacifico(
                   textStyle: TextStyle(
                     fontSize: 20.0,
@@ -58,6 +59,10 @@ class FirstTabContent extends StatelessWidget {
 
 
 class SecondTabContent extends StatelessWidget {
+  final List<String> contactList;
+
+  SecondTabContent({required this.contactList});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +82,7 @@ class SecondTabContent extends StatelessWidget {
               ),
               padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
               child: Text(
-                'Explore new rooms and new people',
+                'Contacts',
                 style: GoogleFonts.pacifico(
                   textStyle: TextStyle(
                     fontSize: 20.0,
@@ -88,15 +93,11 @@ class SecondTabContent extends StatelessWidget {
           ],
         ),
       ),
-      body: Center(
-        child: Text(
-          'Explore kinda rooms',
-          style: TextStyle(fontSize: 20.0),
-        ),
-      ),
+      body: StatefulContactList(contactList: contactList),
     );
   }
 }
+
 
 class OutsidePage extends StatefulWidget {
   OutsidePage({Key? key}) : super(key: key);
@@ -121,6 +122,9 @@ class _OutsidePageState extends State<OutsidePage> with AutomaticKeepAliveClient
     // Add more entries as needed
   ];
 
+  final List<String> contactList = ['John Doe', 'Jane Smith', 'Bob Johnson'];
+
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -140,7 +144,7 @@ class _OutsidePageState extends State<OutsidePage> with AutomaticKeepAliveClient
                   icon: Icon(Icons.hail),
                 ),
                 Tab(
-                  icon: Icon(Icons.nature_people_sharp),
+                  icon: Icon(Icons.people),
                 ),
               ],
             ),
@@ -151,9 +155,10 @@ class _OutsidePageState extends State<OutsidePage> with AutomaticKeepAliveClient
             // First tab content
             FirstTabContent(cardList: cardList),
             // Second tab content
-            SecondTabContent(),
+            SecondTabContent(contactList: contactList), // Pass the contactList to SecondTabContent
           ],
         ),
+
       ),
     );
   }
@@ -195,6 +200,61 @@ class _StatefulCardListState extends State<StatefulCardList> {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class StatefulContactList extends StatefulWidget {
+  final List<String> contactList;
+
+  StatefulContactList({required this.contactList});
+
+  @override
+  _StatefulContactListState createState() => _StatefulContactListState();
+}
+
+class _StatefulContactListState extends State<StatefulContactList> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: widget.contactList.length,
+      itemBuilder: (context, index) {
+        return ContactTile(contactName: widget.contactList[index]);
+      },
+    );
+  }
+}
+
+class ContactTile extends StatelessWidget {
+  final String contactName;
+
+  const ContactTile({Key? key, required this.contactName}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2.0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatPage(contactName: contactName),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12.0),
+          child: Text(
+            contactName,
+            style: TextStyle(fontSize: 18.0),
+          ),
+        ),
+      ),
     );
   }
 }
