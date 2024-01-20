@@ -1,11 +1,24 @@
+import 'dart:io';
+
+import 'package:en_masse_app/BarItems/Explore/explore_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'BarItems/outside_page.dart';
-import 'BarItems/rooms_page.dart';
+import 'BarItems/Explore/rooms_page.dart';
 import 'BarItems/yourself_page.dart';
 import 'package:en_masse_app/Authentication/authentication.dart';
 
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+  }
+}
+
 void main() async {
+  HttpOverrides.global = MyHttpOverrides();
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Check if the user is already authenticated
@@ -46,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final PageController _pageController = PageController();
   final List<Widget> _pages = [
+    ExplorePage(),
     RoomsPage(),
     OutsidePage(),
     YourselfPage(),
@@ -71,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body: PageView(
+        physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
         children: _pages,
         onPageChanged: (index) {
@@ -82,19 +97,24 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_sharp),
-            label: 'Outside',
+            icon: Icon(Icons.today_outlined),
+            label: 'Daily',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.waving_hand_sharp),
-            label: 'Contacts',
+            icon: Icon(Icons.local_cafe_outlined),
+            label: 'Cafe',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.chat_outlined),
+            label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_2_outlined),
             label: 'You',
           ),
         ],
         currentIndex: _selectedIndex,
+        type : BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         onTap: _onItemTapped,
       ),

@@ -98,7 +98,6 @@ class AuthService {
 
   static Future<bool> checkAuthentication() async {
     String? authToken = await getAuthToken();
-    return false;
     return authToken != null;
   }
 
