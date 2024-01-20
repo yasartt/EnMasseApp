@@ -156,6 +156,7 @@ class _StatefulDailyPostState extends State<StatefulDailyPost> {
       ],
     );
   }
+
 }
 
 class DailyPost extends StatelessWidget {
@@ -171,8 +172,28 @@ class DailyPost extends StatelessWidget {
     required this.caption,
   });
 
+
+  final _transformationController = TransformationController();
+  late TapDownDetails _doubleTapDetails;
+
+  void _handleDoubleTap() {
+    if (_transformationController.value != Matrix4.identity()) {
+      _transformationController.value = Matrix4.identity();
+    } else {
+      final position = _doubleTapDetails.localPosition;
+      // For a 3x zoom
+      _transformationController.value = Matrix4.identity()
+        ..translate(-position.dx * 2, -position.dy * 2)
+        ..scale(3.0);
+      // Fox a 2x zoom
+      // ..translate(-position.dx, -position.dy)
+      // ..scale(2.0);
+    }
+  }
+
   void _showOriginalPhoto(BuildContext context) {
     bool captionsVisible = false;
+
 
     showDialog(
       context: context,
@@ -215,7 +236,7 @@ class DailyPost extends StatelessWidget {
                               ),
                             ),
                           ),
-                          SizedBox(width: 8.0),
+                          SizedBox(width: 12.0),
                           // Username
                           Text(
                             username,
@@ -228,16 +249,14 @@ class DailyPost extends StatelessWidget {
                       ),
                     ),
 
-                    // Divider line
-                    Divider(
-                      color: Colors.white,
-                      height: 1,
-                    ),
+
                     // Stack to position caption at the top of the photo
                     Stack(
                       children: [
                         // GestureDetector for Photo
                         GestureDetector(
+                          onDoubleTapDown: (d) => _doubleTapDetails = d,
+                          onDoubleTap: _handleDoubleTap,
                           onTap: () {
                             // Toggle the visibility of captions on tap
                             setState(() {
@@ -245,6 +264,7 @@ class DailyPost extends StatelessWidget {
                             });
                           },
                           child: InteractiveViewer(
+                            transformationController: _transformationController,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10.0),
                               child: Image.asset(
@@ -284,12 +304,15 @@ class DailyPost extends StatelessWidget {
                   ],
                 ),
               ),
+
             );
           },
         );
       },
     );
+
   }
+
 
   @override
   @override
@@ -298,7 +321,7 @@ class DailyPost extends StatelessWidget {
       elevation: 2.0,
       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(0.0),
+        borderRadius: BorderRadius.circular(10.0),
         side: BorderSide(
           color: Theme.of(context).colorScheme.primary,
           width: 2.0,
