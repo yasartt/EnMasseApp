@@ -45,14 +45,6 @@ class FirstTabContent extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Handle FloatingActionButton click
-          // You can navigate to another page or perform any action here
-          print('FloatingActionButton Clicked');
-        },
-        child: Icon(Icons.add),
-      ),
     );
   }
 }

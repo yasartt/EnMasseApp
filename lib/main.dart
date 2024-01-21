@@ -7,6 +7,7 @@ import 'BarItems/outside_page.dart';
 import 'BarItems/Explore/rooms_page.dart';
 import 'BarItems/yourself_page.dart';
 import 'package:en_masse_app/Authentication/authentication.dart';
+import 'new_action.dart';
 
 class MyHttpOverrides extends HttpOverrides{
   @override
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: isAuthenticated ? MyHomePage(title: 'Enteract') : LoginPage(),
@@ -84,15 +85,34 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         centerTitle: true,
       ),
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: _pageController,
-        children: _pages,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      body: Stack(
+        children: [
+          PageView(
+            physics: NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            children: _pages,
+            onPageChanged: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+          ),
+          if (_selectedIndex == 0 || _selectedIndex == _pages.length - 1)
+            Positioned(
+              bottom: 16.0,
+              right: 16.0,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => NewActionPage()),
+                  );
+                },
+                child: Icon(Icons.add),
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -114,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        type : BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         onTap: _onItemTapped,
       ),

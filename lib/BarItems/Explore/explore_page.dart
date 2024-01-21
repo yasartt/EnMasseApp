@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../card_details_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../chat_page.dart';
+import '../daily_post.dart';
 
 class ExplorePage extends StatefulWidget {
   ExplorePage({Key? key}) : super(key: key);
@@ -63,7 +64,6 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
             SecondTabContent(), // Pass the contactList to SecondTabContent
           ],
         ),
-
       ),
     );
   }
@@ -75,10 +75,13 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
 class FirstTabContent extends StatelessWidget {
   // Assuming this list contains your DailyPost data
   final List<Map<String, String>> dailyPosts = [
+    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/screenshot_example.jpg", "caption": "Caption 1"},
     {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/examplethreeuzun.png", "caption": "Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1"},
     {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/travisladder.jpg", "caption": "Caption 1"},
     {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/examplepostlocation.png", "caption": "Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/examplethreeuzun.png", "caption": "Caption 1"},
+    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/screenshot_example.jpg", "caption": "Caption 1"},
+    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/yatay.jpg", "caption": "Caption 1"},
+
 
     // Add more entries as needed
   ];
@@ -125,16 +128,9 @@ class FirstTabContent extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('FloatingActionButton Clicked');
-        },
-        child: Icon(Icons.add),
-      ),
     );
   }
 }
-
 
 class StatefulDailyPost extends StatefulWidget {
   @override
@@ -156,233 +152,7 @@ class _StatefulDailyPostState extends State<StatefulDailyPost> {
       ],
     );
   }
-
 }
-
-class DailyPost extends StatelessWidget {
-  final String profilePhotoUrl;
-  final String username;
-  final String postPhotoUrl;
-  final String caption;
-
-  DailyPost({
-    required this.profilePhotoUrl,
-    required this.username,
-    required this.postPhotoUrl,
-    required this.caption,
-  });
-
-
-  final _transformationController = TransformationController();
-  late TapDownDetails _doubleTapDetails;
-
-  void _handleDoubleTap() {
-    if (_transformationController.value != Matrix4.identity()) {
-      _transformationController.value = Matrix4.identity();
-    } else {
-      final position = _doubleTapDetails.localPosition;
-      // For a 3x zoom
-      _transformationController.value = Matrix4.identity()
-        ..translate(-position.dx * 2, -position.dy * 2)
-        ..scale(3.0);
-      // Fox a 2x zoom
-      // ..translate(-position.dx, -position.dy)
-      // ..scale(2.0);
-    }
-  }
-
-  void _showOriginalPhoto(BuildContext context) {
-    bool captionsVisible = false;
-
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              // Set a specific size for the dialog
-              insetPadding: EdgeInsets.all(16.0),
-              child: GestureDetector(
-                onTap: () {
-                  // Toggle the visibility of captions on tap
-                  setState(() {
-                    captionsVisible = !captionsVisible;
-                  });
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Background for user photo and username
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10.0),
-                          topRight: Radius.circular(10.0),
-                        ),
-                      ),
-                      padding: EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          // User photo
-                          Container(
-                            width: 30.0,
-                            height: 30.0,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                fit: BoxFit.cover,
-                                image: AssetImage(profilePhotoUrl),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12.0),
-                          // Username
-                          Text(
-                            username,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-
-                    // Stack to position caption at the top of the photo
-                    Stack(
-                      children: [
-                        // GestureDetector for Photo
-                        GestureDetector(
-                          onDoubleTapDown: (d) => _doubleTapDetails = d,
-                          onDoubleTap: _handleDoubleTap,
-                          onTap: () {
-                            // Toggle the visibility of captions on tap
-                            setState(() {
-                              captionsVisible = !captionsVisible;
-                            });
-                          },
-                          child: InteractiveViewer(
-                            transformationController: _transformationController,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10.0),
-                              child: Image.asset(
-                                postPhotoUrl,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Positioned caption at the top of the photo (conditionally)
-                        if (captionsVisible)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.8),
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(10.0),
-                                  bottomRight: Radius.circular(10.0),
-                                ),
-                              ),
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                caption,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-            );
-          },
-        );
-      },
-    );
-
-  }
-
-
-  @override
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.primary,
-          width: 2.0,
-        ),
-      ),
-      child: Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Photo and Username
-            Row(
-              children: [
-                Container(
-                  width: 40.0,
-                  height: 40.0,
-                  decoration: BoxDecoration(
-                    // Removed BoxShape.circle
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: AssetImage(profilePhotoUrl),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Text(
-                  username,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.0),
-            // Photo and Text
-            GestureDetector(
-              onTap: () => _showOriginalPhoto(context),
-              child: Container(
-                width: double.infinity,
-                height: 300.0,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(0.0),
-                  child: Image.asset(
-                    postPhotoUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 8.0),
-            Text(
-              caption,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }}
 
 class SecondTabContent extends StatelessWidget {
 
@@ -423,14 +193,6 @@ class SecondTabContent extends StatelessWidget {
           ),
           ],
           ),*/
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Handle FloatingActionButton click
-          // You can navigate to another page or perform any action here
-          print('FloatingActionButton Clicked');
-        },
-        child: Icon(Icons.add),
-      ),
     );
   }
 }

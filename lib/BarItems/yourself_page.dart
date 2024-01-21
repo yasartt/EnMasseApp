@@ -15,77 +15,156 @@ class YourselfPage extends StatelessWidget {
         child: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: Row(
+          centerTitle: true,
+          title: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2.0,
+              ),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+            child: Text(
+              'Yourself',
+              style: GoogleFonts.pacifico(
+                textStyle: TextStyle(
+                  fontSize: 18.0,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: 30),
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                child: Text(
-                  'Yourself',
-                  style: GoogleFonts.pacifico(
-                    textStyle: TextStyle(
-                      fontSize: 18.0, // Adjust the font size
-                    ),
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(15),
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/Bio.jpg'),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
+              SizedBox(width: 30),
+              FutureBuilder<String?>(
+                future: AuthService.getUsername(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    return Text(
+                      snapshot.data ?? 'No username found',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  } else {
+                    return Text('No username found');
+                  }
+                },
+              ),
             ],
+          ),
+          SizedBox(height: 50),
+          Expanded(
+            child: AnotherPage(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCalendarDialog(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    double maxDialogHeight = screenHeight * 0.4;
+    double maxDialogWidth = screenHeight * 0.3;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Container(
+            constraints: BoxConstraints(maxHeight: maxDialogHeight, maxWidth: maxDialogWidth),
+            child: CalendarWidget(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class AnotherPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'My Actions',
+          style: GoogleFonts.openSans(
+            textStyle: TextStyle(
+              fontSize: 18.0,
+            ),
+          ),
+        ),
+        /**actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+              YourselfPage()._showCalendarDialog(context);
+            },
+          ),
+        ],*/
+        elevation: 5,
+        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(4.0), // Specify the desired height
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2.0,
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Add a top border
+        flexibleSpace: PreferredSize(
+          preferredSize: Size.fromHeight(4.0),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2.0,
+                ),
+              ),
+            ),
           ),
         ),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 10),
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(15),
-                image: DecorationImage(
-                  image: AssetImage('assets/images/Bio.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            FutureBuilder<String?>(
-              future: AuthService.getUsername(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data ?? 'No username found',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                } else {
-                  return Text('No username found');
-                }
-              },
-            ),
-            SizedBox(height: 20),
-            CalendarWidget(),
-          ],
-        ),
+        child: Text('This is another page'),
       ),
     );
   }
 }
+
 
 class CalendarWidget extends StatefulWidget {
   @override
@@ -116,16 +195,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 300, // Set the width of the SizedBox
+      width: 300,
       child: Container(
-        padding: EdgeInsets.all(10), // Add padding for the border
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.black, // Adjust the border color
-            width: 2.0,
-          ),
-          borderRadius: BorderRadius.circular(10.0),
-        ),
+        padding: EdgeInsets.all(5),
         child: Column(
           children: [
             Row(
@@ -149,9 +221,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                   ),
               ],
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             Container(
-              width: 300, // Adjust the width of the GridView
+              width: 300,
               child: GridView.builder(
                 shrinkWrap: true,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -172,7 +244,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                       decoration: BoxDecoration(
                         color: Colors.blue.withOpacity(0.5),
                         border: Border.all(color: Colors.white),
-                        borderRadius: BorderRadius.circular(0),
+                        borderRadius: BorderRadius.circular(5.0),
                       ),
                       child: Center(
                         child: Text(
