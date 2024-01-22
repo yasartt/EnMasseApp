@@ -72,6 +72,14 @@ class _DailyPostState extends State<DailyPost> {
                 ),
               ],
             ),
+            Divider(thickness: 1.0, color: Colors.black,),
+            SizedBox(height: 8.0),
+            Text(
+              widget.caption,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 8.0),
             GestureDetector(
               onTap: () {
@@ -113,13 +121,6 @@ class _DailyPostState extends State<DailyPost> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            SizedBox(height: 8.0),
-            Text(
-              widget.caption,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
               ),
             ),
           ],
