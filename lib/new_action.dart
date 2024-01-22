@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class NewActionPage extends StatefulWidget {
   @override
@@ -10,6 +13,43 @@ class NewActionPage extends StatefulWidget {
 
 class _NewActionPageState extends State<NewActionPage> {
   List<File> uploadedPhotos = []; // List to store uploaded photos
+  int currentPhotoIndex = 0; // Initialize currentPhotoIndex
+  TextEditingController _captionController = TextEditingController();
+
+  void _sendPostRequest() async {
+    final String url = 'https://192.168.144.138:7181/api/Daily/AddNewDaily'; // Replace with your actual API endpoint
+    //https://10.0.2.2:7181/api/Cafe/GetAllCafes
+    // Fetch the caption from the controller
+    String caption = _captionController.text;
+
+    // Prepare the data to be sent in the request body
+    Map<String, dynamic> requestData = {
+      'DailyTypeId': 0,
+      'PhotoNumber': uploadedPhotos.length,
+      'Caption': caption,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        // Request was successful
+        print('POST request successful');
+      } else {
+        // Request failed
+        print('POST request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      // An error occurred
+      print('Error sending POST request: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +61,8 @@ class _NewActionPageState extends State<NewActionPage> {
             ElevatedButton(
               onPressed: () {
                 // Handle share button press
+                String caption = _captionController.text;
+                _sendPostRequest();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
@@ -41,6 +83,7 @@ class _NewActionPageState extends State<NewActionPage> {
           children: [
             Expanded(
               child: TextField(
+                controller: _captionController, // Connect the controller to the TextField
                 maxLines: null, // Allow multiple lines
                 expands: true,
                 textAlignVertical: TextAlignVertical.top, // Set to top
@@ -62,43 +105,49 @@ class _NewActionPageState extends State<NewActionPage> {
                       scrollDirection: Axis.horizontal,
                       itemCount: uploadedPhotos.length,
                       itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Image.file(
-                                  uploadedPhotos[index],
-                                  height: 60.0,
-                                  width: 60.0,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Handle delete button press
-                                  _deleteImage(index);
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(4.0),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Theme.of(context).colorScheme.inversePrimary,
-                                  ),
-                                  child: Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 16.0,
+                        return GestureDetector(
+                          onTap: () {
+                            // Handle image click to open photo view
+                            _openPhotoView(index);
+                          },
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.file(
+                                    uploadedPhotos[index],
+                                    height: 60.0,
+                                    width: 60.0,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    // Handle delete button press
+                                    _deleteImage(index);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Theme.of(context).colorScheme.inversePrimary,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
@@ -147,5 +196,93 @@ class _NewActionPageState extends State<NewActionPage> {
     setState(() {
       uploadedPhotos.removeAt(index);
     });
+  }
+
+  void _openPhotoView(int initialIndex) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => PhotoViewWidget(
+        photos: uploadedPhotos,
+        initialIndex: initialIndex,
+      ),
+    );
+  }
+
+}
+
+class PhotoViewWidget extends StatefulWidget {
+  final List<File> photos;
+  final int initialIndex;
+
+  PhotoViewWidget({required this.photos, required this.initialIndex});
+
+  @override
+  _PhotoViewWidgetState createState() => _PhotoViewWidgetState();
+}
+
+class _PhotoViewWidgetState extends State<PhotoViewWidget> {
+  late PageController _pageController;
+  int _currentIndex = 0;
+  double _verticalDragDistance = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onPanUpdate: (details) {
+            setState(() {
+              _verticalDragDistance += details.primaryDelta!;
+            });
+          },
+          onPanEnd: (details) {
+            if (_verticalDragDistance > 200.0) {
+              Navigator.pop(context);
+            } else {
+              setState(() {
+                _verticalDragDistance = 0.0;
+              });
+            }
+          },
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: PhotoViewGallery.builder(
+              itemCount: widget.photos.length,
+              pageController: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              backgroundDecoration: BoxDecoration(
+                color: Colors.black,
+              ),
+              builder: (context, index) {
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: FileImage(widget.photos[index]),
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: PhotoViewComputedScale.covered * 2,
+                );
+              },
+            ),
+          ),
+        ),
+        Positioned(
+          top: _verticalDragDistance,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(color: Colors.transparent),
+        ),
+      ],
+    );
   }
 }

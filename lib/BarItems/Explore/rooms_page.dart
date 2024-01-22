@@ -24,7 +24,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
   Future<void> fetchCafes() async {
     try {
       // Use Future.timeout to set a timeout for the http request
-      final response = await http.get(Uri.parse('https://10.0.2.2:7181/api/Cafe/GetAllCafes'))
+      final response = await http.get(Uri.parse('https://192.168.144.138:7181/api/Cafe/GetAllCafes'))
           .timeout(Duration(seconds: 5));
 
       if (response.statusCode == 200) {
