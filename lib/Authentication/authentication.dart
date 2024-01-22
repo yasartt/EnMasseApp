@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:en_masse_app/main.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   // Create a TextEditingController for the username
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +39,7 @@ class LoginPage extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             TextField(
+              controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Password',
@@ -44,30 +48,47 @@ class LoginPage extends StatelessWidget {
             SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () async {
-                // Get the entered username from the TextEditingController
+                // Check if username and password fields are not empty
+                if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
+                  // Show an error message or handle it as per your requirement
+                  print('Username and password are required');
+                  return;
+                }
+
+                // Get the entered username and password
                 String username = usernameController.text;
+                String password = passwordController.text;
 
-                // Replace this with your actual password input handling
-                String password = 'examplePassword';
+                // Send HTTP request to login controller
+                var response = await http.post(
+                  Uri.parse('https://192.168.144.138:7181/api/Auth/Login'), // Replace with your actual API URL
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({'userName': username, 'password': password}),
+                );
 
-                // Call the authenticate method in AuthService
-                bool isAuthenticated = await AuthService.authenticate(username, password);
+                if (response.statusCode == 200) {
+                  // Successful login, parse the response JSON
+                  var responseBody = jsonDecode(response.body);
 
-                if (isAuthenticated) {
-                  // Authentication successful, navigate to the main content
+                  // Save user-related information to SharedPreferences
+                  await AuthService.saveAuthToken(responseBody['token']);
+                  await AuthService.saveUsername(responseBody['user']['userName']);
+                  await AuthService.saveUserId(responseBody['user']['userId']);
+                  await AuthService.saveEmail(responseBody['user']['email']);
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => MyHomePage(title: 'Enteract')),
                   );
+
                 } else {
-                  // Authentication failed, you might show an error message
-                  // For simplicity, we'll print a message to the console
-                  print('Authentication failed');
+                  // Failed login, show an error message
+                  print('Login failed. Status code: ${response.statusCode}');
+                  print('Error message: ${response.body}');
                 }
               },
               child: Text('Login'),
-            ),
-          ],
+            ),          ],
         ),
       ),
     );
@@ -96,6 +117,21 @@ class AuthService {
     await prefs.setString('username', username);
   }
 
+  static Future<void> saveUserId(int userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('userId', userId);
+  }
+
+  static Future<int?> getUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('userId');
+  }
+
+  static Future<void> saveEmail(String email) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('email', email);
+  }
+
   static Future<bool> checkAuthentication() async {
     String? authToken = await getAuthToken();
     return authToken != null;
@@ -112,6 +148,14 @@ class AuthService {
     await saveAuthToken('exampleToken');
 
     return true;
+  }
+
+  static Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Clear the stored data
+    await prefs.remove('authToken');
+    await prefs.remove('username');
   }
 }
 

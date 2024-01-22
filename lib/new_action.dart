@@ -17,7 +17,7 @@ class _NewActionPageState extends State<NewActionPage> {
   TextEditingController _captionController = TextEditingController();
 
   void _sendPostRequest() async {
-    final String url = 'https://192.168.144.138:7181/api/Daily/AddNewDaily'; // Replace with your actual API endpoint
+    final String url = 'https://192.168.1.38:7181/api/Daily/AddNewDaily'; // Replace with your actual API endpoint
     //https://10.0.2.2:7181/api/Cafe/GetAllCafes
     // Fetch the caption from the controller
     String caption = _captionController.text;
@@ -89,7 +89,7 @@ class _NewActionPageState extends State<NewActionPage> {
                 textAlignVertical: TextAlignVertical.top, // Set to top
                 decoration: InputDecoration(
                   filled: true,
-                  hintText: 'Type here...',
+                  hintText: "What's Up!",
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -208,7 +208,6 @@ class _NewActionPageState extends State<NewActionPage> {
       ),
     );
   }
-
 }
 
 class PhotoViewWidget extends StatefulWidget {

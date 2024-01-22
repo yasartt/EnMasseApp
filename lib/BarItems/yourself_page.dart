@@ -34,6 +34,14 @@ class YourselfPage extends StatelessWidget {
               ),
             ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                _showLogoutDialog(context);
+              },
+            ),
+          ],
         ),
       ),
       body: Column(
@@ -63,19 +71,22 @@ class YourselfPage extends StatelessWidget {
                     return CircularProgressIndicator();
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData) {
-                    return Text(
-                      snapshot.data ?? 'No username found',
+                  } else {
+                    String? username = snapshot.data;
+
+                    return username != null
+                        ? Text(
+                      username,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                    );
-                  } else {
-                    return Text('No username found');
+                    )
+                        : Text('No username found');
                   }
                 },
               ),
+
             ],
           ),
           SizedBox(height: 50),
@@ -87,19 +98,34 @@ class YourselfPage extends StatelessWidget {
     );
   }
 
-  void _showCalendarDialog(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double maxDialogHeight = screenHeight * 0.4;
-    double maxDialogWidth = screenHeight * 0.3;
-
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Container(
-            constraints: BoxConstraints(maxHeight: maxDialogHeight, maxWidth: maxDialogWidth),
-            child: CalendarWidget(),
-          ),
+          title: Text('Logout'),
+          content: Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Perform logout actions, e.g., clear SharedPreferences
+                // and navigate to the main screen
+                AuthService.logout(); // Implement your logout logic here
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyApp(isAuthenticated: false)), // Replace 'false' with the actual authentication status
+                      (route) => false,
+                );
+              },
+              child: Text('Logout'),
+            ),
+          ],
         );
       },
     );
