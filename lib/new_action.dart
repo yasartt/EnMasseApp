@@ -5,6 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:en_masse_app/Authentication/authentication.dart';
 
 class NewActionPage extends StatefulWidget {
   @override
@@ -12,21 +13,28 @@ class NewActionPage extends StatefulWidget {
 }
 
 class _NewActionPageState extends State<NewActionPage> {
-  List<File> uploadedPhotos = []; // List to store uploaded photos
-  int currentPhotoIndex = 0; // Initialize currentPhotoIndex
+  List<File> uploadedPhotos = [];
+  int currentPhotoIndex = 0;
   TextEditingController _captionController = TextEditingController();
 
   void _sendPostRequest() async {
-    final String url = 'https://192.168.1.38:7181/api/Daily/AddNewDaily'; // Replace with your actual API endpoint
-    //https://10.0.2.2:7181/api/Cafe/GetAllCafes
-    // Fetch the caption from the controller
+    final String url = 'https://192.168.1.38:7181/api/Daily/AddNewDaily';
     String caption = _captionController.text;
 
-    // Prepare the data to be sent in the request body
+    int? userId = await AuthService.getUserId();
+
+    List<Map<String, dynamic>> imageList = [];
+    for (int index = 0; index < uploadedPhotos.length; index++) {
+      imageList.add({'Name': index.toString(), 'ImageName': uploadedPhotos[index].path});
+    }
+
     Map<String, dynamic> requestData = {
+      'UserId': userId,
       'DailyTypeId': 0,
       'PhotoNumber': uploadedPhotos.length,
       'Caption': caption,
+      'VideoNumber': 0,
+      'Images': imageList,
     };
 
     try {
@@ -39,19 +47,18 @@ class _NewActionPageState extends State<NewActionPage> {
       );
 
       if (response.statusCode == 200) {
-        // Request was successful
         print('POST request successful');
+
+        Map<String, dynamic> responseBody = jsonDecode(response.body);
+        int dailyId = responseBody['DailyId'];
       } else {
-        // Request failed
         print('POST request failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      // An error occurred
       print('Error sending POST request: $e');
     }
   }
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -89,7 +96,7 @@ class _NewActionPageState extends State<NewActionPage> {
                 textAlignVertical: TextAlignVertical.top, // Set to top
                 decoration: InputDecoration(
                   filled: true,
-                  hintText: "What's Up!",
+                  hintText: "Message To The World!",
                   border: OutlineInputBorder(),
                 ),
               ),

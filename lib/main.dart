@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:en_masse_app/BarItems/Explore/explore_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final PageController _pageController = PageController();
   final List<Widget> _pages = [
-    ExplorePage(),
+    ActionPostScreen(dailyId: 7),
     RoomsPage(),
     OutsidePage(),
     YourselfPage(),
@@ -108,7 +109,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     MaterialPageRoute(builder: (context) => NewActionPage()),
                   );
                 },
-                child: Icon(Icons.add),
+                child: Text(
+                  'A',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               ),
             ),

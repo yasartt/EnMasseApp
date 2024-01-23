@@ -26,12 +26,7 @@ class YourselfPage extends StatelessWidget {
             ),
             padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
             child: Text(
-              'Yourself',
-              style: GoogleFonts.pacifico(
-                textStyle: TextStyle(
-                  fontSize: 18.0,
-                ),
-              ),
+              'Yourself'
             ),
           ),
           actions: [

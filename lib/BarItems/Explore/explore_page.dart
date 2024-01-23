@@ -4,6 +4,8 @@ import '../card_details_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../chat_page.dart';
 import '../daily_post.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ExplorePage extends StatefulWidget {
   ExplorePage({Key? key}) : super(key: key);
@@ -71,20 +73,40 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
   @override
   bool get wantKeepAlive => true;
 }
+class FirstTabContent extends StatefulWidget {
+  @override
+  _FirstTabContentState createState() => _FirstTabContentState();
+}
 
-class FirstTabContent extends StatelessWidget {
-  // Assuming this list contains your DailyPost data
-  final List<Map<String, String>> dailyPosts = [
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/screenshot_example.jpg", "caption": "Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/examplethreeuzun.png", "caption": "Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/travisladder.jpg", "caption": "Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/examplepostlocation.png", "caption": "Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/screenshot_example.jpg", "caption": "Caption 1"},
-    {"profilePhotoUrl": "assets/images/Bio.jpg", "username": "User1", "postPhotoUrl": "assets/images/yatay.jpg", "caption": "Caption 1"},
+class _FirstTabContentState extends State<FirstTabContent> {
+  List<Map<String, String>> dailyPosts = [];
 
+  @override
+  void initState() {
+    super.initState();
+    // Fetch daily posts when the widget is initialized
+    fetchDailyPosts();
+  }
 
-    // Add more entries as needed
-  ];
+  Future<void> fetchDailyPosts() async {
+    final String apiUrl = 'your_api_url/dailyPosts';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonData = json.decode(response.body);
+
+        setState(() {
+          dailyPosts = jsonData.cast<Map<String, String>>();
+        });
+      } else {
+        throw Exception('Failed to load daily posts');
+      }
+    } catch (error) {
+      print('Error fetching daily posts: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,12 +127,7 @@ class FirstTabContent extends StatelessWidget {
               ),
               padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
               child: Text(
-                'Your Contacts',
-                style: GoogleFonts.pacifico(
-                  textStyle: TextStyle(
-                    fontSize: 20.0,
-                  ),
-                ),
+                  'Your Contacts'
               ),
             ),
           ],
@@ -123,7 +140,7 @@ class FirstTabContent extends StatelessWidget {
           return DailyPost(
             profilePhotoUrl: post["profilePhotoUrl"]!,
             username: post["username"]!,
-            postPhotoUrl: post["postPhotoUrl"]!,
+            postPhotoUrls: post["postPhotoUrls"]!.split(','), // Assuming post photos are separated by a comma
             caption: post["caption"]!,
           );
         },
@@ -131,28 +148,43 @@ class FirstTabContent extends StatelessWidget {
     );
   }
 }
-
+/**
 class StatefulDailyPost extends StatefulWidget {
   @override
   _StatefulDailyPostState createState() => _StatefulDailyPostState();
 }
 
 class _StatefulDailyPostState extends State<StatefulDailyPost> {
+  List<Map<String, String>> dailyPosts = [
+    {
+      "profilePhotoUrl": "assets/images/Bio.jpg",
+      "username": "Username",
+      "postPhotoUrls": [
+        "assets/images/travisladder.jpg",
+        // Add more photo URLs as needed
+      ],
+      "caption": "Caption goes here...",
+    },
+    // Add more entries as needed
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        DailyPost(
-          profilePhotoUrl: 'assets/images/Bio.jpg',
-          username: 'Username',
-          postPhotoUrl: 'assets/images/travisladder.jpg',
-          caption: 'Caption goes here...',
-        ),
-        // Add more Daily posts as needed
-      ],
+    return ListView.builder(
+      /**itemCount: dailyPosts.length,
+      itemBuilder: (context, index) {
+        final post = dailyPosts[index];
+        return DailyPost(
+          profilePhotoUrl: post["profilePhotoUrl"]!,
+          username: post["username"]!,
+          postPhotoUrls: post["postPhotoUrls"]!,
+          caption: post["caption"]!,
+        );
+      },*/
     );
   }
 }
+*/
 
 class SecondTabContent extends StatelessWidget {
 
@@ -175,12 +207,7 @@ class SecondTabContent extends StatelessWidget {
               ),
               padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
               child: Text(
-                'People For You',
-                style: GoogleFonts.pacifico(
-                  textStyle: TextStyle(
-                    fontSize: 20.0,
-                  ),
-                ),
+                'People For You'
               ),
             ),
           ],

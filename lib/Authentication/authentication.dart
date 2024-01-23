@@ -61,7 +61,7 @@ class LoginPage extends StatelessWidget {
 
                 // Send HTTP request to login controller
                 var response = await http.post(
-                  Uri.parse('https://192.168.144.138:7181/api/Auth/Login'), // Replace with your actual API URL
+                  Uri.parse('https://192.168.1.38:7181/api/Auth/Login'), // Replace with your actual API URL
                   headers: {'Content-Type': 'application/json'},
                   body: jsonEncode({'userName': username, 'password': password}),
                 );
