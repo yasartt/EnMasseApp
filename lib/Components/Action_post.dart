@@ -68,11 +68,69 @@ class _ActionPostScreenState extends State<ActionPostScreen> {
     }
 
     // Multiple images, split the space
-    return Row(
-      children: List.generate(
-        actionPostImages.length,
-            (index) => Expanded(
-          child: _buildImageContainer(actionPostImages[index].imageName),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.inversePrimary,
+        border: Border.all(
+          color: Colors.black,
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(12.0), // Adjust the border radius as needed
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0), // Adjust the padding as needed
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // First row: Profile photo
+            Row(
+              children: [
+                Container(
+                  width: 40.0, // Set the width as needed
+                  height: 40.0, // Set the height as needed
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0), // Adjust the border radius as needed
+                    image: DecorationImage(
+                      image: FileImage(File(actionPostImages[0].imageName)),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.0), // Adjust the spacing as needed
+                Text('Username'), // Replace 'Username' with the actual username
+              ],
+            ),
+            SizedBox(height: 8.0), // Adjust the spacing as needed
+
+            // Second row: Text
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'The caption for the action',
+                    style: TextStyle(fontSize: 16.0), // Adjust the font size as needed
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.0), // Adjust the spacing as needed
+
+            // Third row: Photos
+            Container(
+              height: 100.0, // Adjust the height as needed
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: actionPostImages.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0), // Adjust the horizontal padding as needed
+                    child: _buildImageContainer(actionPostImages[index].imageName),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -95,19 +153,17 @@ class _ActionPostScreenState extends State<ActionPostScreen> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12.0),
-          child: Padding(
-            padding: EdgeInsets.all(8.0), // Add padding here
-            child: Image.file(
-              imageFile,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
+          child: Image.file(
+            imageFile,
+            width: 80.0, // Set the width as needed
+            height: 80.0, // Set the height as needed
+            fit: BoxFit.cover, // Use BoxFit.cover to ensure the image fits within the container
           ),
         ),
       ),
     );
   }
+
 
   void _openPhotoView(File imageFile) {
     showModalBottomSheet(
