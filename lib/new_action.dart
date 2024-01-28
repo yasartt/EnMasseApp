@@ -28,13 +28,14 @@ class _NewActionPageState extends State<NewActionPage> {
       imageList.add({'Name': index.toString(), 'ImageName': uploadedPhotos[index].path});
     }
 
+    // Add DateTime key-value pair
+    DateTime currentTime = DateTime.now();
     Map<String, dynamic> requestData = {
       'UserId': userId,
       'DailyTypeId': 0,
-      'PhotoNumber': uploadedPhotos.length,
       'Caption': caption,
-      'VideoNumber': 0,
       'Images': imageList,
+      'RequestDateTime': currentTime.toIso8601String(), // or any other format you prefer
     };
 
     try {

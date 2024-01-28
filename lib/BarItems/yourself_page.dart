@@ -13,7 +13,6 @@ class YourselfPage extends StatelessWidget {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: AppBar(
-          backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
           title: Container(
@@ -150,7 +149,6 @@ class AnotherPage extends StatelessWidget {
           ),
         ],*/
         elevation: 5,
-        backgroundColor: Colors.white,
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(4.0), // Specify the desired height
           child: Container(

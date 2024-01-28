@@ -24,7 +24,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
   Future<void> fetchCafes() async {
     try {
       // Use Future.timeout to set a timeout for the http request
-      final response = await http.get(Uri.parse('https://10.0.2.2:7181/api/Cafe/GetAllCafes'))
+      final response = await http.get(Uri.parse('https://192.168.1.38:7181/api/Cafe/GetAllCafes'))
           .timeout(Duration(seconds: 5));
 
       if (response.statusCode == 200) {
@@ -66,7 +66,6 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: AppBar(
-            backgroundColor: Colors.white,
             elevation: 0,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
