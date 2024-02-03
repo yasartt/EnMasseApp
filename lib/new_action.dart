@@ -6,6 +6,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
+import 'package:en_masse_app/config.dart';
 
 class NewActionPage extends StatefulWidget {
   @override
@@ -16,9 +17,22 @@ class _NewActionPageState extends State<NewActionPage> {
   List<File> uploadedPhotos = [];
   int currentPhotoIndex = 0;
   TextEditingController _captionController = TextEditingController();
+  bool isShareEnabled = false; // Initialize as disabled
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for changes in the caption field
+    _captionController.addListener(() {
+      setState(() {
+        isShareEnabled = uploadedPhotos.isNotEmpty || _captionController.text.isNotEmpty;
+      });
+    });
+  }
 
   void _sendPostRequest() async {
-    final String url = 'https://192.168.1.38:7181/api/Daily/AddNewDaily';
+    final String url = 'https://${Config.apiBaseUrl}/api/Daily/AddNewDaily';
     String caption = _captionController.text;
 
     int? userId = await AuthService.getUserId();
@@ -60,6 +74,7 @@ class _NewActionPageState extends State<NewActionPage> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -67,18 +82,22 @@ class _NewActionPageState extends State<NewActionPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: () {
-                // Handle share button press
-                String caption = _captionController.text;
+              onPressed: isShareEnabled ? () {
                 _sendPostRequest();
-              },
+              } : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: isShareEnabled
+                    ? Theme.of(context).colorScheme.primary // Enabled color
+                    : Colors.grey[300], // Default disabled color
+                disabledBackgroundColor: Colors.grey, // Disabled background color
+                disabledForegroundColor: Colors.white, // Disabled text color
               ),
               child: Text(
                 'Share',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: isShareEnabled
+                      ? Theme.of(context).colorScheme.onPrimary // Enabled text color
+                      : Colors.white, // Disabled text color
                 ),
               ),
             ),
@@ -148,7 +167,7 @@ class _NewActionPageState extends State<NewActionPage> {
                                     ),
                                     child: Icon(
                                       Icons.close,
-                                      color: Colors.white,
+                                      color: Theme.of(context).colorScheme.primary,
                                       size: 16.0,
                                     ),
                                   ),

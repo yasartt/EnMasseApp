@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:en_masse_app/main.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../config.dart';
 
 class LoginPage extends StatelessWidget {
   // Create a TextEditingController for the username
@@ -61,7 +62,7 @@ class LoginPage extends StatelessWidget {
 
                 // Send HTTP request to login controller
                 var response = await http.post(
-                  Uri.parse('https://192.168.1.38:7181/api/Auth/Login'), // Replace with your actual API URL
+                  Uri.parse('https://${Config.apiBaseUrl}/api/Auth/Login'), // Replace with your actual API URL
                   headers: {'Content-Type': 'application/json'},
                   body: jsonEncode({'userName': username, 'password': password}),
                 );

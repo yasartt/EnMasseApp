@@ -34,27 +34,29 @@ class _ActionPostScreenState extends State<ActionPostScreen> {
 
   Widget _buildImages() {
     if (widget.dailyView.images == null || widget.dailyView.images!.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 20.0),
-        child: Center(child: Text('No Images')),
-      );
+      return SizedBox.shrink();
     }
+
+    int imageCount = widget.dailyView.images!.length;
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
-        physics: NeverScrollableScrollPhysics(), // To disable GridView's scrolling
-        shrinkWrap: true, // To fit GridView into the card
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Adjust the number of columns
+          crossAxisCount: imageCount == 3 ? 3 : 2, // 3 columns for 3 images, else 2
           crossAxisSpacing: 4.0,
           mainAxisSpacing: 4.0,
+          childAspectRatio: (imageCount == 1)
+              ? MediaQuery.of(context).size.width / (MediaQuery.of(context).size.width / 2)
+              : 1,
         ),
-        itemCount: widget.dailyView.images!.length,
+        itemCount: imageCount,
         itemBuilder: (context, index) {
           File imageFile = File(widget.dailyView.images![index].imageName);
           return GestureDetector(
-            onTap: () => _openPhotoView(imageFile),
+            onTap: () => _openPhotoView(index), // Pass the index of the tapped image
             child: Image.file(imageFile, fit: BoxFit.cover),
           );
         },
@@ -62,14 +64,19 @@ class _ActionPostScreenState extends State<ActionPostScreen> {
     );
   }
 
-  void _openPhotoView(File imageFile) {
+  void _openPhotoView(int tappedImageIndex) {
+    List<File> imageFiles = widget.dailyView.images!
+        .map((image) => File(image.imageName))
+        .toList();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => PhotoViewWidget(
-        photos: [imageFile],
-        initialIndex: 0,
+        photos: imageFiles,
+        initialIndex: tappedImageIndex,
       ),
     );
   }
+
 }
