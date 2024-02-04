@@ -110,13 +110,25 @@ class ActionPostScreen extends StatelessWidget {
 
   void _openPhotoView(BuildContext context, int tappedImageIndex) {
     List<File> imageFiles = dailyView.images!.map((image) => File(image.imageName)).toList();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => PhotoViewWidget(
+
+    Navigator.of(context).push(PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => PhotoViewWidget(
         photos: imageFiles,
         initialIndex: tappedImageIndex,
       ),
-    );
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var begin = 0.0;
+        var end = 1.0;
+        var curve = Curves.ease;
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return ScaleTransition(
+          scale: animation.drive(tween),
+          child: child,
+        );
+      },
+    ));
   }
+
 }
