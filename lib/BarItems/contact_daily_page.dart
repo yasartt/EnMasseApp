@@ -115,11 +115,11 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
                   if (pageOffset > 0) {
                     scale = 1 - (pageOffset / 3);
                     opacity = 1 - (pageOffset);
-                    translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
+                    //translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
                   } else if (pageOffset < 0) {
                     scale = 1 - (-pageOffset / 10);
                     opacity = 1 - (-pageOffset);
-                    translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
+                    //translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
                     translateY = (MediaQuery.of(context).size.height / 2) * -pageOffset;
                   }
 
