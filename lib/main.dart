@@ -1,11 +1,12 @@
 import 'dart:io';
 
+import 'package:en_masse_app/BarItems/explore_daily_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
-import 'package:en_masse_app/BarItems/Explore/explore_page.dart';
+import 'package:en_masse_app/BarItems/contact_daily_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'BarItems/outside_page.dart';
-import 'BarItems/Explore/rooms_page.dart';
+import 'BarItems/rooms_page.dart';
 import 'BarItems/yourself_page.dart';
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'new_action.dart';
@@ -63,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController();
   final List<Widget> _pages = [
     ContactDaily(),
-    Placeholder(),
+    ExplorePage(),
     RoomsPage(),
     OutsidePage(),
     YourselfPage(),

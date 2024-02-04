@@ -1,14 +1,17 @@
-import 'package:en_masse_app/BarItems/Explore/rooms_page.dart';
+import 'package:en_masse_app/BarItems/rooms_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:flutter/material.dart';
-import '../card_details_page.dart';
+import 'card_details_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../chat_page.dart';
-import '../daily_post.dart';
+import 'chat_page.dart';
+import 'daily_post.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'package:en_masse_app/config.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'dart:math' as math;
 
 class ContactDaily extends StatefulWidget {
   @override
@@ -50,25 +53,60 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    super.build(context); // Ensure you call super.build(context) when using AutomaticKeepAliveClientMixin
     return Column(
       children: [
+        AppBar(
+            elevation: 0,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  child: Text(
+                      'Weekly Cafes For You'
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
+              onPressed: () {
+                // Your icon button action here
+              },
+            ),
+          ),
+        ),
         Expanded(
-          child: Center( // Use Center to position the PageView in the middle of the screen
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: 600, // Maximum height for the content, adjust as needed
-                // You can also use MediaQuery to set this relative to screen size, for example:
-                // maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-              child: PageView.builder(
-                scrollDirection: Axis.vertical,
-                itemCount: dailyViews.length,
-                itemBuilder: (context, index) {
-                  return ActionPostScreen(dailyView: dailyViews[index]);
-                  // Wrap ActionPostScreen with a widget that limits its height, if necessary
-                },
-              ),
+          child: PageView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: dailyViews.length,
+            itemBuilder: (context, index) {
+              return ActionPostScreen(dailyView: dailyViews[index]);
+            },
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
+              onPressed: () {
+                // Your icon button action here
+              },
             ),
           ),
         ),

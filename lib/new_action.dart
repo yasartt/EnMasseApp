@@ -42,14 +42,13 @@ class _NewActionPageState extends State<NewActionPage> {
       imageList.add({'Name': index.toString(), 'ImageName': uploadedPhotos[index].path});
     }
 
-    // Add DateTime key-value pair
     DateTime currentTime = DateTime.now();
     Map<String, dynamic> requestData = {
       'UserId': userId,
       'DailyTypeId': 0,
       'Caption': caption,
       'Images': imageList,
-      'RequestDateTime': currentTime.toIso8601String(), // or any other format you prefer
+      'RequestDateTime': currentTime.toIso8601String(),
     };
 
     try {
@@ -64,8 +63,10 @@ class _NewActionPageState extends State<NewActionPage> {
       if (response.statusCode == 200) {
         print('POST request successful');
 
-        Map<String, dynamic> responseBody = jsonDecode(response.body);
-        int dailyId = responseBody['DailyId'];
+        // Optionally process response data here
+
+        // Navigate back to the previous screen if the post is successful
+        Navigator.pop(context);
       } else {
         print('POST request failed with status: ${response.statusCode}');
       }
