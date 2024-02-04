@@ -45,7 +45,7 @@ class ActionPostScreen extends StatelessWidget {
                 ),
                 Divider(), // Add a divider below the images and text
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(4.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

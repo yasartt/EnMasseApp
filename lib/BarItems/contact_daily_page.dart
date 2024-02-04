@@ -140,7 +140,7 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(32.0),
           /***child: Align(
             alignment: Alignment.topRight,
             child: IconButton(

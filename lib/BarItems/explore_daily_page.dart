@@ -35,10 +35,10 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
             bottom: TabBar(
               tabs: [
                 Tab(
-                  icon: Icon(Icons.nature_people_outlined),
+                  icon: Icon(Icons.nature_people_outlined, color: Theme.of(context).colorScheme.primary,),
                 ),
                 Tab(
-                  icon: Icon(Icons.hail_outlined),
+                  icon: Icon(Icons.hail_outlined, color: Theme.of(context).colorScheme.primary),
                 ),
               ],
             ),
@@ -67,11 +67,19 @@ class FirstTabContent extends StatefulWidget {
 
 class _FirstTabContentState extends State<FirstTabContent> {
   List<DailyView> dailyViews = [];
+  PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     fetchDailyViews();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchDailyViews() async {
@@ -103,14 +111,71 @@ class _FirstTabContentState extends State<FirstTabContent> {
   Widget build(BuildContext context) {
     return Column( // Wrap with a Column widget
       children: [
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
+              onPressed: () {
+                // Your icon button action here
+              },
+            ),
+          ),
+        ),
         Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
+          child: PageView.builder(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
             itemCount: dailyViews.length,
             itemBuilder: (context, index) {
-              return ActionPostScreen(dailyView: dailyViews[index]);
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double pageOffset = index - (_pageController.page ?? 0);
+                  double scale = 1.0;
+                  double opacity = 1.0;
+                  double translateX = 0.0;
+                  double translateY = 0.0;
+
+                  if (pageOffset > 0) {
+                    scale = 1 - (pageOffset / 3);
+                    opacity = 1 - (pageOffset);
+                    //translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
+                  } else if (pageOffset < 0) {
+                    scale = 1 - (-pageOffset / 10);
+                    opacity = 1 - (-pageOffset);
+                    //translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
+                    translateY = (MediaQuery.of(context).size.height / 2) * -pageOffset;
+                  }
+
+                  return Transform.scale(
+                    scale: scale.clamp(0.0, 1.0),
+                    child: Opacity(
+                      opacity: opacity.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(translateX, translateY),
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: ActionPostScreen(dailyView: dailyViews[index]),
+              );
             },
           ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(32.0),
+          /***child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
+              onPressed: () {
+              // Your icon button action here
+              },
+              ),
+              ),*/
         ),
       ],
     );
