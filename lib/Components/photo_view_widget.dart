@@ -17,6 +17,7 @@ class _PhotoViewWidgetState extends State<PhotoViewWidget> {
   late PageController _pageController;
   late int _currentIndex;
   double _verticalDragOffset = 0.0;
+  double _scaleFactor = 1.0; // Add a scale factor
 
   @override
   void initState() {
@@ -28,32 +29,39 @@ class _PhotoViewWidgetState extends State<PhotoViewWidget> {
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     setState(() {
       _verticalDragOffset += details.primaryDelta!;
+      // Calculate scale factor based on drag distance, adjust the divisor for sensitivity
+      _scaleFactor = 1 - (_verticalDragOffset.abs() / 1000);
+      _scaleFactor = _scaleFactor.clamp(0.5, 1.0); // Ensure scale factor does not invert or exceed original size
     });
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
-    // Check for absolute value to consider both upward and downward swipes
     if (_verticalDragOffset.abs() > 100) { // Adjust the threshold as needed
       Navigator.of(context).pop();
     } else {
       setState(() {
         _verticalDragOffset = 0.0; // Reset drag offset
+        _scaleFactor = 1.0; // Reset scale factor
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(0.0, _verticalDragOffset), // Translate Scaffold based on drag offset
-      child: Scaffold(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
-        body: GestureDetector(
-          onVerticalDragUpdate: _onVerticalDragUpdate,
-          onVerticalDragEnd: _onVerticalDragEnd,
-          child: Stack(
+    // Apply transformations to the entire Scaffold
+    return GestureDetector(
+      onVerticalDragUpdate: _onVerticalDragUpdate,
+      onVerticalDragEnd: _onVerticalDragEnd,
+      child: Transform(
+        transform: Matrix4.identity()
+          ..translate(0.0, _verticalDragOffset)
+          ..scale(_scaleFactor),
+        alignment: FractionalOffset.center,
+        child: Scaffold(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.black
+              : Colors.white,
+          body: Stack(
             alignment: Alignment.bottomCenter,
             children: <Widget>[
               PhotoViewGallery.builder(

@@ -2,6 +2,10 @@ import 'package:en_masse_app/BarItems/contact_daily_page.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:en_masse_app/Components/photo_view_widget.dart'; // Ensure you have this import for PhotoViewWidget
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class ActionPostScreen extends StatelessWidget {
   final DailyView dailyView;
@@ -77,10 +81,13 @@ class ActionPostScreen extends StatelessWidget {
     if (imageCount == 1) {
       File imageFile = File(dailyView.images![0].imageName);
       return GestureDetector(
-        onTap: () => _openPhotoView(context, 0), // Make the single image clickable
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 300), // Limit the height of the single image
-          child: Image.file(imageFile, fit: BoxFit.cover),
+        onTap: () => _openPhotoView(context, 0),
+        child: Hero(
+          tag: 'photoHero${dailyView.images![0].imageName}',
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 300),
+            child: Image.file(imageFile, fit: BoxFit.cover),
+          ),
         ),
       );
     }
@@ -101,7 +108,10 @@ class ActionPostScreen extends StatelessWidget {
           File imageFile = File(dailyView.images![index].imageName);
           return GestureDetector(
             onTap: () => _openPhotoView(context, index),
-            child: Image.file(imageFile, fit: BoxFit.cover),
+            child: Hero(
+              tag: 'photoHero${dailyView.images![index].imageName}',
+              child: Image.file(imageFile, fit: BoxFit.cover),
+            ),
           );
         },
       ),
@@ -110,12 +120,88 @@ class ActionPostScreen extends StatelessWidget {
 
   void _openPhotoView(BuildContext context, int tappedImageIndex) {
     List<File> imageFiles = dailyView.images!.map((image) => File(image.imageName)).toList();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => PhotoViewWidget(
-        photos: imageFiles,
-        initialIndex: tappedImageIndex,
+
+    // Instead of showModalBottomSheet, use Navigator to push a custom route
+    Navigator.of(context).push(PageRouteBuilder(
+      opaque: false, // Ensure the background remains visible
+      pageBuilder: (BuildContext context, _, __) {
+        return PhotoViewOverlayWidget(
+          photos: imageFiles,
+          initialIndex: tappedImageIndex,
+          // Pass any additional necessary parameters
+        );
+      },
+    ));
+  }
+}
+
+class PhotoViewOverlayWidget extends StatefulWidget {
+  final List<File> photos;
+  final int initialIndex;
+
+  PhotoViewOverlayWidget({required this.photos, required this.initialIndex});
+
+  @override
+  _PhotoViewOverlayWidgetState createState() => _PhotoViewOverlayWidgetState();
+}
+
+class _PhotoViewOverlayWidgetState extends State<PhotoViewOverlayWidget> {
+  double _currentScale = 1.0;
+  Offset _currentOffset = Offset.zero; // Tracks the current offset for drag
+  late double _initialFocalPointY; // Tracks the initial vertical position of the drag
+
+  void _handleVerticalDragStart(DragStartDetails details) {
+    _initialFocalPointY = details.globalPosition.dy;
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) {
+    // Calculate the drag offset
+    double verticalDrag = details.globalPosition.dy - _initialFocalPointY;
+    // Adjust scale based on the drag distance
+    double scaleDelta = verticalDrag / 1000;
+    setState(() {
+      _currentScale = (1.0 - scaleDelta).clamp(0.5, 1.0);
+      _currentOffset = Offset(0, verticalDrag * 0.5); // Modify this factor to control the drag sensitivity
+    });
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    if (_currentScale < 0.8) { // Use a threshold to determine if the widget should close
+      Navigator.of(context).pop();
+    } else {
+      // Reset scale and position if the photo is not dismissed
+      setState(() {
+        _currentScale = 1.0;
+        _currentOffset = Offset.zero;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onVerticalDragStart: _handleVerticalDragStart,
+      onVerticalDragUpdate: _handleVerticalDragUpdate,
+      onVerticalDragEnd: _handleVerticalDragEnd,
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translate(_currentOffset.dx, _currentOffset.dy)
+          ..scale(_currentScale),
+        child: PhotoViewGallery.builder(
+          itemCount: widget.photos.length,
+          builder: (context, index) {
+            return PhotoViewGalleryPageOptions(
+              imageProvider: FileImage(widget.photos[index]),
+              initialScale: PhotoViewComputedScale.contained,
+              heroAttributes: PhotoViewHeroAttributes(tag: index),
+            );
+          },
+          pageController: PageController(initialPage: widget.initialIndex),
+          backgroundDecoration: BoxDecoration(
+            color: Colors.transparent,
+          ),
+        ),
       ),
     );
   }
