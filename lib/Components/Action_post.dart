@@ -17,7 +17,7 @@ class ActionPostScreen extends StatelessWidget {
           child: Card(
             margin: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0), // Adjust for more rounded corners
+              borderRadius: BorderRadius.circular(16.0),
             ),
             elevation: 8.0,
             child: Column(
@@ -27,13 +27,13 @@ class ActionPostScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: Row(
                     children: [
-                      Icon(Icons.person), // Replace with user's profile image if available
+                      Icon(Icons.person), // Placeholder for user's profile image
                       SizedBox(width: 10),
                       Expanded(child: Text('User ID: ${dailyView.userId}')),
                     ],
                   ),
                 ),
-                Divider(), // Adds a line to separate the user details from the rest of the post content
+                Divider(),
                 if (dailyView.caption != null && dailyView.caption!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -42,7 +42,22 @@ class ActionPostScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: _buildImages(context),
-                )
+                ),
+                Divider(), // Add a divider below the images and text
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.reply), // You can change the icon as needed
+                        onPressed: () {
+                          // Handle the reply button action here
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -58,30 +73,43 @@ class ActionPostScreen extends StatelessWidget {
 
     int imageCount = dailyView.images!.length;
 
-    return GridView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: (imageCount > 2) ? 3 : imageCount, // Adjust based on the number of images
-        crossAxisSpacing: 4.0,
-        mainAxisSpacing: 4.0,
-      ),
-      itemCount: imageCount,
-      itemBuilder: (context, index) {
-        File imageFile = File(dailyView.images![index].imageName);
-        return GestureDetector(
-          onTap: () => _openPhotoView(context, index),
+    // For a single image, make it clickable and constrained
+    if (imageCount == 1) {
+      File imageFile = File(dailyView.images![0].imageName);
+      return GestureDetector(
+        onTap: () => _openPhotoView(context, 0), // Make the single image clickable
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 300), // Limit the height of the single image
           child: Image.file(imageFile, fit: BoxFit.cover),
-        );
-      },
+        ),
+      );
+    }
+
+    // For multiple images, use GridView within a constrained area
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: 300), // Adjust this value as needed
+      child: GridView.builder(
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: imageCount, // Adjust based on the number of images
+          crossAxisSpacing: 4.0,
+          mainAxisSpacing: 4.0,
+        ),
+        itemCount: imageCount,
+        itemBuilder: (context, index) {
+          File imageFile = File(dailyView.images![index].imageName);
+          return GestureDetector(
+            onTap: () => _openPhotoView(context, index),
+            child: Image.file(imageFile, fit: BoxFit.cover),
+          );
+        },
+      ),
     );
   }
 
   void _openPhotoView(BuildContext context, int tappedImageIndex) {
-    List<File> imageFiles = dailyView.images!
-        .map((image) => File(image.imageName))
-        .toList();
-
+    List<File> imageFiles = dailyView.images!.map((image) => File(image.imageName)).toList();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

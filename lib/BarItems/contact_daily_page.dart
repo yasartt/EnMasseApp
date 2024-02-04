@@ -20,11 +20,19 @@ class ContactDaily extends StatefulWidget {
 
 class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClientMixin {
   List<DailyView> dailyViews = [];
+  PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     fetchDailyViews();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchDailyViews() async {
@@ -71,7 +79,7 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                   child: Text(
-                      'Weekly Cafes For You'
+                      'Your Contacts'
                   ),
                 ),
               ],
@@ -91,24 +99,57 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
         ),
         Expanded(
           child: PageView.builder(
+            controller: _pageController,
             scrollDirection: Axis.vertical,
             itemCount: dailyViews.length,
             itemBuilder: (context, index) {
-              return ActionPostScreen(dailyView: dailyViews[index]);
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double pageOffset = index - (_pageController.page ?? 0);
+                  double scale = 1.0;
+                  double opacity = 1.0;
+                  double translateX = 0.0;
+                  double translateY = 0.0;
+
+                  if (pageOffset > 0) {
+                    scale = 1 - (pageOffset / 3);
+                    opacity = 1 - (pageOffset * 0.5);
+                    translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
+                  } else if (pageOffset < 0) {
+                    scale = 1 - (-pageOffset / 3);
+                    opacity = 1 - (-pageOffset * 0.5);
+                    translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
+                    translateY = (MediaQuery.of(context).size.height / 2) * -pageOffset;
+                  }
+
+                  return Transform.scale(
+                    scale: scale.clamp(0.0, 1.0),
+                    child: Opacity(
+                      opacity: opacity.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(translateX, translateY),
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: ActionPostScreen(dailyView: dailyViews[index]),
+              );
             },
           ),
         ),
         Padding(
           padding: EdgeInsets.all(8.0),
-          child: Align(
-            alignment: Alignment.topLeft,
+          /***child: Align(
+            alignment: Alignment.topRight,
             child: IconButton(
               icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
               onPressed: () {
                 // Your icon button action here
               },
             ),
-          ),
+          ),*/
         ),
       ],
     );
