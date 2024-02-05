@@ -22,13 +22,17 @@ class _NewActionPageState extends State<NewActionPage> {
   @override
   void initState() {
     super.initState();
+    _captionController.addListener(_updateShareButtonState);
+  }
 
-    // Listen for changes in the caption field
-    _captionController.addListener(() {
+  // This function updates the state of the share button
+  void _updateShareButtonState() {
+    bool shouldEnable = uploadedPhotos.isNotEmpty || _captionController.text.isNotEmpty;
+    if (isShareEnabled != shouldEnable) {
       setState(() {
-        isShareEnabled = uploadedPhotos.isNotEmpty || _captionController.text.isNotEmpty;
+        isShareEnabled = shouldEnable;
       });
-    });
+    }
   }
 
   void _sendPostRequest() async {
@@ -203,16 +207,14 @@ class _NewActionPageState extends State<NewActionPage> {
     );
   }
 
-  // Function to pick an image and add it to the list
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     try {
       final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
       if (pickedFile != null) {
-        // Add the picked image to the uploadedPhotos list
         setState(() {
           uploadedPhotos.add(File(pickedFile.path));
+          _updateShareButtonState(); // Update share button state when a photo is added
         });
       }
     } catch (e) {
@@ -223,6 +225,7 @@ class _NewActionPageState extends State<NewActionPage> {
   void _deleteImage(int index) {
     setState(() {
       uploadedPhotos.removeAt(index);
+      _updateShareButtonState();
     });
   }
 
@@ -235,6 +238,13 @@ class _NewActionPageState extends State<NewActionPage> {
         initialIndex: initialIndex,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _captionController.removeListener(_updateShareButtonState);
+    _captionController.dispose();
+    super.dispose();
   }
 }
 

@@ -36,12 +36,12 @@ class _PhotoViewWidgetState extends State<PhotoViewWidget> {
       _verticalDragOffset += details.primaryDelta!;
       // Calculate scale factor based on drag distance, adjust the divisor for sensitivity
       _scaleFactor = 1 - (_verticalDragOffset.abs() / 1000);
-      _scaleFactor = _scaleFactor.clamp(0.5, 1.0); // Ensure scale factor does not invert or exceed original size
+      _scaleFactor = _scaleFactor.clamp(0.5, 1.0); // Clamp scale factor to prevent inversion
     });
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
-    if (_verticalDragOffset.abs() > 100) { // Adjust the threshold as needed
+    if (_verticalDragOffset.abs() > 100) { // Threshold to dismiss
       Navigator.of(context).pop();
     } else {
       setState(() {
@@ -53,20 +53,19 @@ class _PhotoViewWidgetState extends State<PhotoViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Apply transformations to the entire Scaffold
-    return GestureDetector(
-      onVerticalDragUpdate: _onVerticalDragUpdate,
-      onVerticalDragEnd: _onVerticalDragEnd,
-      child: Transform(
-        transform: Matrix4.identity()
-          ..translate(0.0, _verticalDragOffset)
-          ..scale(_scaleFactor),
-        alignment: FractionalOffset.center,
-        child: Scaffold(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.black
-              : Colors.white,
-          body: Stack(
+    return Transform(
+      transform: Matrix4.identity()
+        ..translate(0.0, _verticalDragOffset)
+        ..scale(_scaleFactor), // Apply scale transformation
+      alignment: FractionalOffset.center,
+      child: Scaffold(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.black
+            : Colors.white,
+        body: GestureDetector(
+          onVerticalDragUpdate: _onVerticalDragUpdate,
+          onVerticalDragEnd: _onVerticalDragEnd,
+          child: Stack(
             alignment: Alignment.bottomCenter,
             children: <Widget>[
               PhotoViewGallery.builder(
@@ -81,8 +80,9 @@ class _PhotoViewWidgetState extends State<PhotoViewWidget> {
                 builder: (context, index) {
                   return PhotoViewGalleryPageOptions(
                     imageProvider: FileImage(widget.photos[index]),
-                    minScale: PhotoViewComputedScale.contained,
-                    maxScale: PhotoViewComputedScale.covered * 2,
+                    minScale: PhotoViewComputedScale.contained * _scaleFactor,
+                    maxScale: PhotoViewComputedScale.covered * 2 * _scaleFactor,
+                    initialScale: PhotoViewComputedScale.contained * _scaleFactor,
                   );
                 },
                 backgroundDecoration: const BoxDecoration(
