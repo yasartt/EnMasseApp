@@ -121,7 +121,7 @@ class _NewActionPageState extends State<NewActionPage> {
                 textAlignVertical: TextAlignVertical.top, // Set to top
                 decoration: InputDecoration(
                   filled: true,
-                  hintText: "Message To The World!",
+                  hintText: "Share Anything!",
                   border: OutlineInputBorder(),
                 ),
               ),
