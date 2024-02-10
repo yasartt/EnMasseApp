@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:en_masse_app/config.dart';
 
 class RoomsPage extends StatefulWidget {
   RoomsPage({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
   Future<void> fetchCafes() async {
     try {
       // Use Future.timeout to set a timeout for the http request
-      final response = await http.get(Uri.parse('https://192.168.1.38:7181/api/Cafe/GetAllCafes'))
+      final response = await http.get(Uri.parse('https://${Config.apiBaseUrl}/api/Cafe/GetAllCafes'))
           .timeout(Duration(seconds: 5));
 
       if (response.statusCode == 200) {

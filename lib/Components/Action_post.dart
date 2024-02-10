@@ -29,7 +29,7 @@ class ActionPostScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.person), // Placeholder for user's profile image
                       SizedBox(width: 10),
-                      Expanded(child: Text('User ID: ${dailyView.userId}')),
+                      Expanded(child: Text('${dailyView.userName}')),
                     ],
                   ),
                 ),

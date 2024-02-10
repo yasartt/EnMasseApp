@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'contact_daily_page.dart';
+import 'package:en_masse_app/config.dart';
 
 class ExplorePage extends StatefulWidget {
   ExplorePage({Key? key}) : super(key: key);
@@ -93,7 +94,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
 
     final lastTime = DateTime.now(); // Replace with the actual DateTime you want to use
 
-    final response = await http.get(Uri.parse('https://192.168.1.38:7181/api/Daily/GetContactDailiesByUser/$userId/$lastTime'));
+    final response = await http.get(Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser/$userId/$lastTime'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);

@@ -90,7 +90,7 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
           child: Align(
             alignment: Alignment.topLeft,
             child: IconButton(
-              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
+              icon: Icon(Icons.home), // Replace `your_icon` with the desired icon
               onPressed: () {
                 // Your icon button action here
               },
@@ -165,6 +165,8 @@ class DailyView {
   final String? caption;
   final DateTime? created;
   final List<ImageDTO>? images;
+  final String userName;
+  final String? userPhotoId;
 
   DailyView({
     required this.dailyId,
@@ -172,6 +174,8 @@ class DailyView {
     this.caption,
     this.created,
     this.images,
+    required this.userName,
+    this.userPhotoId,
   });
 
   factory DailyView.fromJson(Map<String, dynamic> json) {
@@ -180,6 +184,8 @@ class DailyView {
       userId: json['userId'] ?? 0,
       caption: json['caption'] ?? "",
       created: json['created'] != null ? DateTime.parse(json['created']) : null,
+      userName: json['userName'] ?? "",
+      userPhotoId: json['userPhotoId'] ?? "",
       images: (json['images'] as List<dynamic>?)
           ?.map((image) => ImageDTO.fromJson(image))
           .toList(),

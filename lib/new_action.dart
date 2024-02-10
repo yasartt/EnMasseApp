@@ -18,6 +18,7 @@ class _NewActionPageState extends State<NewActionPage> {
   int currentPhotoIndex = 0;
   TextEditingController _captionController = TextEditingController();
   bool isShareEnabled = false; // Initialize as disabled
+  bool _isPosting = false;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _NewActionPageState extends State<NewActionPage> {
     }
   }
 
-  void _sendPostRequest() async {
+  Future<void> _sendPostRequest() async {
     final String url = 'https://${Config.apiBaseUrl}/api/Daily/AddNewDaily';
     String caption = _captionController.text;
 
@@ -49,10 +50,9 @@ class _NewActionPageState extends State<NewActionPage> {
     DateTime currentTime = DateTime.now();
     Map<String, dynamic> requestData = {
       'UserId': userId,
-      'DailyTypeId': 0,
       'Caption': caption,
       'Images': imageList,
-      'RequestDateTime': currentTime.toIso8601String(),
+      'Created': currentTime.toIso8601String(),
     };
 
     try {
@@ -87,25 +87,42 @@ class _NewActionPageState extends State<NewActionPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: isShareEnabled ? () {
-                _sendPostRequest();
-              } : null,
+              onPressed: isShareEnabled && !_isPosting
+                  ? () async {
+                setState(() {
+                  _isPosting = true; // Disable the button and show the loading indicator
+                });
+                await _sendPostRequest(); // Send the POST request
+                setState(() {
+                  _isPosting = false; // Re-enable the button and hide the loading indicator after the request is done
+                });
+              }
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isShareEnabled
+                backgroundColor: isShareEnabled && !_isPosting
                     ? Theme.of(context).colorScheme.primary // Enabled color
                     : Colors.grey[300], // Default disabled color
                 disabledBackgroundColor: Colors.grey, // Disabled background color
                 disabledForegroundColor: Colors.white, // Disabled text color
               ),
-              child: Text(
+              child: _isPosting
+                  ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : Text(
                 'Share',
                 style: TextStyle(
-                  color: isShareEnabled
+                  color: isShareEnabled && !_isPosting
                       ? Theme.of(context).colorScheme.onPrimary // Enabled text color
                       : Colors.white, // Disabled text color
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

@@ -1,3 +1,3 @@
 class Config {
-  static const String apiBaseUrl = '192.168.1.38:7181'; // Replace with your actual IP address
+  static const String apiBaseUrl = '172.20.10.3:7181'; // Replace with your actual IP address
 }
