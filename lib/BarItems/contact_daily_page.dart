@@ -18,9 +18,11 @@ class ContactDaily extends StatefulWidget {
   _ContactDailyState createState() => _ContactDailyState();
 }
 
+
 class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClientMixin {
   List<DailyView> dailyViews = [];
   PageController _pageController = PageController();
+  bool _isFieldVisible = false;
 
   @override
   void initState() {
@@ -34,6 +36,13 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
     _pageController.dispose();
     super.dispose();
   }
+
+  void _toggleFieldVisibility() {
+    setState(() {
+      _isFieldVisible = !_isFieldVisible;
+    });
+  }
+
 
   Future<void> fetchDailyViews() async {
     final userId = await AuthService.getUserId();
@@ -61,7 +70,8 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Ensure you call super.build(context) when using AutomaticKeepAliveClientMixin
+    super.build(context);
+    final screenHeight = MediaQuery.of(context).size.height;
     return Column(
       children: [
         AppBar(
@@ -85,15 +95,25 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
               ],
             ),
           ),
-        Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              icon: Icon(Icons.home), // Replace `your_icon` with the desired icon
-              onPressed: () {
-                // Your icon button action here
-              },
+        Container(
+          height: 72,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.black,
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                icon: Icon(Icons.home), // Replace `your_icon` with the desired icon
+                onPressed: () {
+                  // Your icon button action here
+                },
+              ),
             ),
           ),
         ),
@@ -139,17 +159,76 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
             },
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(32.0),
-          /***child: Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
-              onPressed: () {
-                // Your icon button action here
-              },
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Container(
+            height: 48,
+            width: 48,
+            margin: EdgeInsets.only(left: 8.0, bottom: 0.0),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Theme.of(context).colorScheme.primary),
+                left: BorderSide(color: Theme.of(context).colorScheme.primary),
+                right: BorderSide(color: Theme.of(context).colorScheme.primary),
+              ),
+              //borderRadius: BorderRadius.circular(5.0),
+              //shape: BoxShape.circle,
             ),
-          ),*/
+            child: Center( // Wrap the CustomToggleButton with a Center widget
+              child: CustomToggleButton(
+                isExpanded: _isFieldVisible,
+                onTap: _toggleFieldVisibility,
+                //icon: _isFieldVisible ? Icons.arrow_upward : Icons.arrow_downward_sharp,
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                    color: Theme.of(context).colorScheme.primary
+                ),
+              ),
+            ),
+            child: AnimatedContainer(
+              margin: EdgeInsets.only(left: 8.0, right: 8.0),
+              duration: Duration(milliseconds: 300),
+              height: _isFieldVisible ? 60 : 0, // Adjust the height as needed
+              curve: Curves.easeInOut,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.attach_file, color: Theme.of(context).colorScheme.primary,), // Choose your left icon
+                          onPressed: () {
+                            // Action for the left icon button
+                          },
+                        ),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(hintText: 'Enter something...'),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Action for the right button
+                          },
+                          child: Text('Share'), // Text for the right button
+                        ),
+                      ],
+                    ),
+                    //SizedBox(height: 10),
+                    // If you need more widgets below, add them here
+                  ],
+                ),
+              ),
+            ),
+          )
         ),
       ],
     );
@@ -158,6 +237,69 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
   @override
   bool get wantKeepAlive => true; // Keep the state of the widget across different tabs
 }
+
+class CustomToggleButton extends StatefulWidget {
+  final bool isExpanded;
+  final VoidCallback onTap;
+  //final IconData icon;
+
+  const CustomToggleButton({
+    Key? key,
+    required this.isExpanded,
+    required this.onTap,
+    //required this.icon,
+  }) : super(key: key);
+
+  @override
+  State<CustomToggleButton> createState() => _CustomToggleButtonState();
+}
+
+class _CustomToggleButtonState extends State<CustomToggleButton> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _iconTurns;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(duration: const Duration(milliseconds: 250), vsync: this);
+    _iconTurns = Tween<double>(begin: 0.0, end: 0.5).animate(_animationController);
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomToggleButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: AnimatedBuilder(
+        animation: _animationController,
+        builder: (_, child) {
+          return RotationTransition(
+            turns: _iconTurns,
+            child: Icon(Icons.arrow_upward, size: 24, color: Theme.of(context).colorScheme.primary,),
+          );
+        },
+      ),
+      onPressed: widget.onTap,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+}
+
 
 class DailyView {
   final int dailyId;

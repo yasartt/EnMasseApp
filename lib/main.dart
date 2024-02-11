@@ -31,6 +31,22 @@ void main() async {
   runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
+Map<int, Color> neonGreenSwatch = {
+  50: Color(0xFFE8FFD6),
+  100: Color(0xFFC2FFAD),
+  200: Color(0xFF9BFF84),
+  300: Color(0xFF74FF5B),
+  400: Color(0xFF4DFF32),
+  500: Color(0xFF33FF00), // base color
+  600: Color(0xFF29CC00),
+  700: Color(0xFF1F9900),
+  800: Color(0xFF146600),
+  900: Color(0xFF0A3300),
+};
+
+MaterialColor customNeonGreen = MaterialColor(0xFF33FF00, neonGreenSwatch);
+
+
 class MyApp extends StatelessWidget {
   final bool isAuthenticated;
 
@@ -40,14 +56,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData.light(), // Light theme
-      darkTheme: ThemeData.dark(), // Dark theme
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.lightBlue,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.lightBlue,
+      ),
       themeMode: ThemeMode.system, // Use system theme mode
       home: isAuthenticated ? MyHomePage(title: 'Enteract') : LoginPage(),
     );
   }
 }
-
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -105,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
           ),
-          if (_selectedIndex == 0 || _selectedIndex == _pages.length - 1)
+          /**if (_selectedIndex == 0 || _selectedIndex == _pages.length - 1)
             Positioned(
               bottom: 16.0,
               right: 16.0,
@@ -119,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Icon(Icons.add),
                 backgroundColor: Theme.of(context).colorScheme.primary,
               ),
-            ),
+            ),*/
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
