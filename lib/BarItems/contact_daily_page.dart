@@ -75,11 +75,13 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
     return Column(
       children: [
         AppBar(
-            elevation: 0,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: Stack(
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: Theme.of(context).colorScheme.primary,
@@ -88,33 +90,19 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                  child: Text(
-                      'Your Contacts'
-                  ),
+                  child: Text('Your Contacts'),
                 ),
-              ],
-            ),
-          ),
-        Container(
-          height: 72,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.black,
               ),
-            ),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: IconButton(
-                icon: Icon(Icons.home), // Replace `your_icon` with the desired icon
-                onPressed: () {
-                  // Your icon button action here
-                },
+              Positioned(
+                left: 0, // Aligns the IconButton to the left
+                child: IconButton(
+                  icon: Icon(Icons.home),
+                  onPressed: () {
+                    // Your icon button action here
+                  },
+                ),
               ),
-            ),
+            ],
           ),
         ),
         Expanded(
@@ -159,7 +147,7 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
             },
           ),
         ),
-        Align(
+        /**Align(
           alignment: Alignment.bottomLeft,
           child: Container(
             height: 48,
@@ -229,7 +217,10 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
               ),
             ),
           )
-        ),
+        ),*/
+        Padding(
+          padding: EdgeInsets.all(32.0),
+        )
       ],
     );
   }

@@ -24,7 +24,9 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
   Widget build(BuildContext context) {
     super.build(context);
 
-    return DefaultTabController(
+    return FirstTabContent();
+
+    /** DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: PreferredSize(
@@ -54,7 +56,7 @@ class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClient
           ],
         ),
       ),
-    );
+    );*/
   }
 
   @override
@@ -110,18 +112,37 @@ class _FirstTabContentState extends State<FirstTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column( // Wrap with a Column widget
+    return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
-              onPressed: () {
-                // Your icon button action here
-              },
-            ),
+        AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: Stack(
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  child: Text('Entherians'),
+                ),
+              ),
+              Positioned(
+                left: 0, // Aligns the IconButton to the left
+                child: IconButton(
+                  icon: Icon(Icons.sunny_snowing),
+                  onPressed: () {
+                    // Your icon button action here
+                  },
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(

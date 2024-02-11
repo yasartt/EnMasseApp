@@ -126,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
           ),
-          /**if (_selectedIndex == 0 || _selectedIndex == _pages.length - 1)
+          if (_selectedIndex == 0 || _selectedIndex == 1)
             Positioned(
               bottom: 16.0,
               right: 16.0,
@@ -140,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Icon(Icons.add),
                 backgroundColor: Theme.of(context).colorScheme.primary,
               ),
-            ),*/
+            ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

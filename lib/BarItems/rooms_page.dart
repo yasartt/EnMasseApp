@@ -64,7 +64,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
     return DefaultTabController(
       length: 1,
       child: Scaffold(
-        appBar: PreferredSize(
+        /**appBar: PreferredSize(
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: AppBar(
             elevation: 0,
@@ -87,7 +87,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
               ],
             ),
           ),
-        ),
+        ),*/
         body: RefreshIndicator(
           onRefresh: _refreshCafes,
           child: Column(
