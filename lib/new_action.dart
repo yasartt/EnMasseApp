@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'package:en_masse_app/config.dart';
+import 'package:en_masse_app/Components/daily_view.dart';
 
 class NewActionPage extends StatefulWidget {
   @override

@@ -10,6 +10,9 @@ import 'BarItems/rooms_page.dart';
 import 'BarItems/yourself_page.dart';
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'new_action.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:en_masse_app/Components/daily_view.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -21,15 +24,23 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
 
-  WidgetsFlutterBinding.ensureInitialized();
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDocumentDir.path);
 
-  // Check if the user is already authenticated
+  // Register adapters
+  Hive.registerAdapter(DailyViewAdapter());
+  Hive.registerAdapter(ImageDTOAdapter());
+
+  // Open Hive box
+  await Hive.openBox<DailyView>('dailyViews');
+
   bool isAuthenticated = await AuthService.checkAuthentication();
-
   runApp(MyApp(isAuthenticated: isAuthenticated));
 }
+
 
 Map<int, Color> neonGreenSwatch = {
   50: Color(0xFFE8FFD6),
@@ -59,10 +70,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.lightBlue,
+        fontFamily: GoogleFonts.roboto().fontFamily,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.lightBlue,
+        fontFamily: GoogleFonts.roboto().fontFamily,
       ),
       themeMode: ThemeMode.system, // Use system theme mode
       home: isAuthenticated ? MyHomePage(title: 'Enteract') : LoginPage(),

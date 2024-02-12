@@ -12,6 +12,8 @@ import 'package:en_masse_app/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:math' as math;
+import 'package:en_masse_app/Components/daily_view.dart';
+
 
 class ContactDaily extends StatefulWidget {
   @override
@@ -288,61 +290,5 @@ class _CustomToggleButtonState extends State<CustomToggleButton> with SingleTick
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-}
-
-
-class DailyView {
-  final int dailyId;
-  final int userId;
-  final String? caption;
-  final DateTime? created;
-  final List<ImageDTO>? images;
-  final String userName;
-  final String? userPhotoId;
-
-  DailyView({
-    required this.dailyId,
-    required this.userId,
-    this.caption,
-    this.created,
-    this.images,
-    required this.userName,
-    this.userPhotoId,
-  });
-
-  factory DailyView.fromJson(Map<String, dynamic> json) {
-    return DailyView(
-      dailyId: json['dailyId'] ?? 0,
-      userId: json['userId'] ?? 0,
-      caption: json['caption'] ?? "",
-      created: json['created'] != null ? DateTime.parse(json['created']) : null,
-      userName: json['userName'] ?? "",
-      userPhotoId: json['userPhotoId'] ?? "",
-      images: (json['images'] as List<dynamic>?)
-          ?.map((image) => ImageDTO.fromJson(image))
-          .toList(),
-    );
-  }
-}
-
-
-class ImageDTO {
-  final String id;
-  final String imageName;
-  final int dailyId;
-
-  ImageDTO({
-    required this.id,
-    required this.imageName,
-    required this.dailyId,
-  });
-
-  factory ImageDTO.fromJson(Map<String, dynamic> json) {
-    return ImageDTO(
-      id: json['id'],
-      imageName: json['imageName'],
-      dailyId: json['dailyId'],
-    );
   }
 }

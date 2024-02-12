@@ -2,11 +2,37 @@ import 'package:en_masse_app/BarItems/contact_daily_page.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:en_masse_app/Components/photo_view_widget.dart'; // Ensure you have this import for PhotoViewWidget
+import 'package:en_masse_app/Components/daily_view.dart';
+import 'package:intl/intl.dart';
 
 class ActionPostScreen extends StatelessWidget {
   final DailyView dailyView;
 
   ActionPostScreen({required this.dailyView});
+
+  String _formatDateTime(DateTime? created) {
+    if (created == null) return 'Date Unknown';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day).subtract(Duration(days: 1));
+    final dateCreated = DateTime(created.year, created.month, created.day);
+
+    // Check if the post was created today
+    if (dateCreated == today) {
+      // If so, return the time only
+      return DateFormat('h:mm a').format(created);
+    } else {
+      // If not, calculate how many days ago it was and return that information
+      final difference = today.difference(dateCreated).inDays;
+      if (difference == 1) {
+        return 'Yesterday';
+      } else {
+        return '$difference days ago';
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +71,19 @@ class ActionPostScreen extends StatelessWidget {
                 ),
                 Divider(), // Add a divider below the images and text
                 Padding(
-                  padding: const EdgeInsets.all(4.0),
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text(
+                        _formatDateTime(dailyView.created),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                       IconButton(
-                        icon: Icon(Icons.reply), // You can change the icon as needed
+                        icon: Icon(Icons.reply),
                         onPressed: () {
                           // Handle the reply button action here
                         },

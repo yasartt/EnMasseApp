@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:en_masse_app/BarItems/rooms_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +8,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'chat_page.dart';
 import 'daily_post.dart';
 import 'dart:convert';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
 import 'contact_daily_page.dart';
+import 'dart:math';
 import 'package:en_masse_app/config.dart';
+import 'package:en_masse_app/Components/daily_view.dart';
 
 class ExplorePage extends StatefulWidget {
   ExplorePage({Key? key}) : super(key: key);
@@ -71,39 +77,90 @@ class FirstTabContent extends StatefulWidget {
 class _FirstTabContentState extends State<FirstTabContent> {
   List<DailyView> dailyViews = [];
   PageController _pageController = PageController();
+  bool _isDataLoaded = false;
+  StreamSubscription? _boxSubscription; // Declare a subscription variable
 
   @override
   void initState() {
     super.initState();
+    _initializeDataAndListenToBox();
+  }
+
+  void _initializeDataAndListenToBox() async {
+    final userId = await AuthService.getUserId();
+    if (userId == null) return;
+
+    final box = Hive.box<DailyView>('dailyViews');
+    _updateDailyViewsList(box.values.toList()); // Initial load of data
+
+    // Listen to changes in the box
+    _boxSubscription = box.watch().listen((event) {
+      _updateDailyViewsList(box.values.toList()); // Update UI on change
+    });
+
     fetchDailyViews();
-    _pageController = PageController();
+  }
+
+  void _updateDailyViewsList(List<DailyView> updatedList) {
+    setState(() {
+      dailyViews = updatedList;
+      _isDataLoaded = true;
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _boxSubscription?.cancel(); // Cancel the subscription when disposing
     super.dispose();
   }
 
   Future<void> fetchDailyViews() async {
     final userId = await AuthService.getUserId();
-
     if (userId == null) {
       // Handle the case where userId is null (not authenticated)
-      // You may navigate to the login page or take appropriate action
       return;
     }
 
-    final lastTime = DateTime.now(); // Replace with the actual DateTime you want to use
+    final box = Hive.box<DailyView>('dailyViews');
+    DailyView? lastDailyView = box.values.isNotEmpty ? box.values.last : null;
 
-    final response = await http.get(Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser/$userId/$lastTime'));
+    // If there's a lastDailyView, use its `created` date and `dailyId`, otherwise use current time
+    final lastTime = lastDailyView?.created?.toIso8601String() ??
+        DateTime.now().toIso8601String();
+    final lastDailyId = lastDailyView?.dailyId;
+
+    // Define the request URL
+    final url = Uri.parse(
+        'https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
+
+    // Create the request body
+    final body = jsonEncode({
+      'userId': userId,
+      'lastDailyId': lastDailyId, // Adjust API to accept this if needed
+      'lastTime': lastTime,
+    });
+
+    // Send the POST request
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
-      List<DailyView> loadedDailyViews = data.map((json) => DailyView.fromJson(json)).toList();
+      List<DailyView> loadedDailyViews = data.map((json) =>
+          DailyView.fromJson(json)).toList();
+
+      // Append new data to the Hive box
+      for (var dailyView in loadedDailyViews) {
+        box.add(dailyView);
+      }
 
       setState(() {
-        dailyViews = loadedDailyViews;
+        // If you're using a local list to display data, refresh it from the Hive box
+        dailyViews = box.values.toList();
       });
     } else {
       // Handle error
@@ -124,17 +181,21 @@ class _FirstTabContentState extends State<FirstTabContent> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .primary,
                       width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 6.0),
                   child: Text('Entherians'),
                 ),
               ),
               Positioned(
-                left: 0, // Aligns the IconButton to the left
+                left: 0,
                 child: IconButton(
                   icon: Icon(Icons.sunny_snowing),
                   onPressed: () {
@@ -147,58 +208,33 @@ class _FirstTabContentState extends State<FirstTabContent> {
         ),
         Expanded(
           child: PageView.builder(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            itemCount: dailyViews.length,
-            itemBuilder: (context, index) {
-              return AnimatedBuilder(
-                animation: _pageController,
-                builder: (context, child) {
-                  double pageOffset = index - (_pageController.page ?? 0);
-                  double scale = 1.0;
-                  double opacity = 1.0;
-                  double translateX = 0.0;
-                  double translateY = 0.0;
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: dailyViews.length,
+                itemBuilder: (context, index) {
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      if (!_pageController.hasClients) {
+                        return Container(); // Or some placeholder widget
+                      }
+                      double pageOffset = index - (_pageController.page ?? 0);
+                      double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
+                      double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
 
-                  if (pageOffset > 0) {
-                    scale = 1 - (pageOffset / 3);
-                    opacity = 1 - (pageOffset);
-                    //translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
-                  } else if (pageOffset < 0) {
-                    scale = 1 - (-pageOffset / 10);
-                    opacity = 1 - (-pageOffset);
-                    //translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
-                    translateY = (MediaQuery.of(context).size.height / 2) * -pageOffset;
-                  }
-
-                  return Transform.scale(
-                    scale: scale.clamp(0.0, 1.0),
-                    child: Opacity(
-                      opacity: opacity.clamp(0.0, 1.0),
-                      child: Transform.translate(
-                        offset: Offset(translateX, translateY),
-                        child: child,
-                      ),
-                    ),
+                      return Opacity(
+                        opacity: opacity,
+                        child: Transform.scale(
+                          scale: scale,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: ActionPostScreen(dailyView: dailyViews[index]),
                   );
                 },
-                child: ActionPostScreen(dailyView: dailyViews[index]),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(32.0),
-          /***child: Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-              icon: Icon(Icons.sunny), // Replace `your_icon` with the desired icon
-              onPressed: () {
-              // Your icon button action here
-              },
               ),
-              ),*/
-        ),
+          ),
       ],
     );
   }
@@ -234,66 +270,10 @@ class SecondTabContent extends StatelessWidget {
       /**body: Column(
           children: [
           Expanded(
-          child: ,
+          child: ,a
           ),
           ],
           ),*/
-    );
-  }
-}
-
-
-class StatefulContactList extends StatefulWidget {
-  final List<String> contactList;
-
-  StatefulContactList({required this.contactList});
-
-  @override
-  _StatefulContactListState createState() => _StatefulContactListState();
-}
-
-class _StatefulContactListState extends State<StatefulContactList> {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.contactList.length,
-      itemBuilder: (context, index) {
-        return ContactTile(contactName: widget.contactList[index]);
-      },
-    );
-  }
-}
-
-class ContactTile extends StatelessWidget {
-  final String contactName;
-
-  const ContactTile({Key? key, required this.contactName}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatPage(contactName: contactName),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(12.0),
-          child: Text(
-            contactName,
-            style: TextStyle(fontSize: 18.0),
-          ),
-        ),
-      ),
     );
   }
 }
