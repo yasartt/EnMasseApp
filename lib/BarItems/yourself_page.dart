@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:en_masse_app/main.dart';
 import 'package:en_masse_app/Authentication/authentication.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:en_masse_app/Components/daily_view.dart';
 
 class YourselfPage extends StatelessWidget {
   const YourselfPage({Key? key}) : super(key: key);
@@ -107,10 +110,14 @@ class YourselfPage extends StatelessWidget {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                // Perform logout actions, e.g., clear SharedPreferences
-                // and navigate to the main screen
+              onPressed: () async {
+                // Clear the Hive box for DailyViews
+                var box = await Hive.openBox<DailyView>('dailyViews');
+                await box.clear();
+
+                // Perform logout actions
                 AuthService.logout(); // Implement your logout logic here
+
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => MyApp(isAuthenticated: false)), // Replace 'false' with the actual authentication status

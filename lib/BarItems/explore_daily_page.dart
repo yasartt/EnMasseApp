@@ -123,16 +123,16 @@ class _FirstTabContentState extends State<FirstTabContent> {
     }
 
     final box = Hive.box<DailyView>('dailyViews');
+    final int initialCount = box.length; // Store the initial count of items in the box
+
     DailyView? lastDailyView = box.values.isNotEmpty ? box.values.last : null;
 
     // If there's a lastDailyView, use its `created` date and `dailyId`, otherwise use current time
-    final lastTime = lastDailyView?.created?.toIso8601String() ??
-        DateTime.now().toIso8601String();
+    final lastTime = lastDailyView?.created?.toIso8601String() ?? null;
     final lastDailyId = lastDailyView?.dailyId;
 
     // Define the request URL
-    final url = Uri.parse(
-        'https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
+    final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
 
     // Create the request body
     final body = jsonEncode({
@@ -142,26 +142,29 @@ class _FirstTabContentState extends State<FirstTabContent> {
     });
 
     // Send the POST request
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
+    final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: body);
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
-      List<DailyView> loadedDailyViews = data.map((json) =>
-          DailyView.fromJson(json)).toList();
+      List<DailyView> loadedDailyViews = data.map((json) => DailyView.fromJson(json)).toList();
 
-      // Append new data to the Hive box
+      // Append new data to the Hive box and update the local list
       for (var dailyView in loadedDailyViews) {
         box.add(dailyView);
       }
 
+      // Calculate the starting index of the newly appended data
+      int newIndexStart = initialCount - loadedDailyViews.length;
+
       setState(() {
-        // If you're using a local list to display data, refresh it from the Hive box
         dailyViews = box.values.toList();
+        _isDataLoaded = true;
       });
+
+      // After the state is updated, jump to the starting index of the newly appended data
+      if (newIndexStart >= 0 && newIndexStart < dailyViews.length) {
+        _pageController.jumpToPage(newIndexStart);
+      }
     } else {
       // Handle error
     }
