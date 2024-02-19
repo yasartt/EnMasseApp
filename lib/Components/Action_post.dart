@@ -62,12 +62,14 @@ class ActionPostScreen extends StatelessWidget {
                 Divider(),
                 if (dailyView.caption != null && dailyView.caption!.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16, bottom: 8),
                     child: Text(dailyView.caption!),
                   ),
+                if(!(dailyView.caption != null && dailyView.images!.isNotEmpty))
+                  Padding(padding: const EdgeInsets.only(top: 8)),
                 if(dailyView.images!.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 16),
                     child: _buildImages(context),
                   ),
                 Divider(), // Add a divider below the images and text

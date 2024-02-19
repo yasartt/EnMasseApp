@@ -124,11 +124,29 @@ class _FirstTabContentState extends State<FirstTabContent> {
     }
 
     final box = Hive.box<DailyView>('dailyViews');
+
+    final oneWeekAgo = DateTime.now().subtract(Duration(days: 7));
+
+    List<dynamic> keysToDelete = [];
+
+    box.toMap().forEach((key, dailyView) {
+      if (dailyView.created != null && dailyView.created!.isBefore(oneWeekAgo)) {
+        keysToDelete.add(key);
+      }
+    });
+
+    for (var key in keysToDelete) {
+      await box.delete(key);
+    }
+
+    final lastTime = dailyViews.isNotEmpty ? dailyViews.last.created?.toIso8601String() : null;
+    final lastDailyId = dailyViews.isNotEmpty ? dailyViews.last.dailyId : null;
+
     final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
     final body = jsonEncode({
       'userId': userId,
-      'lastTime': dailyViews.last.created?.toIso8601String(),
-      'lastDailyId': dailyViews.last.dailyId
+      'lastTime': lastTime,
+      'lastDailyId': lastDailyId
     });
 
     final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: body);
