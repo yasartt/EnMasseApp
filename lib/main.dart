@@ -70,7 +70,7 @@ Map<int, Color> darkCoolYellowSwatch = {
   900: Color(0xFF000000), // Darkest in dark theme
 };
 
-MaterialColor customDarkCoolYellow = MaterialColor(0xFFB3961B, darkCoolYellowSwatch);
+MaterialColor customDarkCoolYellow = MaterialColor(0xFFCCAD1F, darkCoolYellowSwatch);
 
 class MyApp extends StatelessWidget {
   final bool isAuthenticated;
