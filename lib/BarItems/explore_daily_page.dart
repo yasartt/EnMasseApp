@@ -79,6 +79,8 @@ class _FirstTabContentState extends State<FirstTabContent> {
   PageController _pageController = PageController();
   bool _isDataLoaded = false;
   StreamSubscription? _boxSubscription; // Declare a subscription variable
+  int _currentIndex = 0;
+  bool _shouldUpdatePageController = false; // Flag to indicate when to update the PageController
 
   @override
   void initState() {
@@ -91,14 +93,13 @@ class _FirstTabContentState extends State<FirstTabContent> {
     if (userId == null) return;
 
     final box = Hive.box<DailyView>('dailyViews');
-    _updateDailyViewsList(box.values.toList()); // Initial load of data
+    _updateDailyViewsList(box.values.toList());
 
-    // Listen to changes in the box
     _boxSubscription = box.watch().listen((event) {
-      _updateDailyViewsList(box.values.toList()); // Update UI on change
+      _updateDailyViewsList(box.values.toList());
     });
 
-    fetchDailyViews();
+    await fetchDailyViews();
   }
 
   void _updateDailyViewsList(List<DailyView> updatedList) {
@@ -123,50 +124,69 @@ class _FirstTabContentState extends State<FirstTabContent> {
     }
 
     final box = Hive.box<DailyView>('dailyViews');
-    final int initialCount = box.length; // Store the initial count of items in the box
-
-    DailyView? lastDailyView = box.values.isNotEmpty ? box.values.last : null;
-
-    // If there's a lastDailyView, use its `created` date and `dailyId`, otherwise use current time
-    final lastTime = lastDailyView?.created?.toIso8601String() ?? null;
-    final lastDailyId = lastDailyView?.dailyId;
-
-    // Define the request URL
     final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
-
-    // Create the request body
     final body = jsonEncode({
       'userId': userId,
-      'lastDailyId': lastDailyId, // Adjust API to accept this if needed
-      'lastTime': lastTime,
+      'lastTime': dailyViews.last.created?.toIso8601String(),
+      'lastDailyId': dailyViews.last.dailyId
     });
 
-    // Send the POST request
     final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: body);
-
+    print('Try');
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       List<DailyView> loadedDailyViews = data.map((json) => DailyView.fromJson(json)).toList();
 
-      // Append new data to the Hive box and update the local list
-      for (var dailyView in loadedDailyViews) {
-        box.add(dailyView);
-      }
+      if (loadedDailyViews.isNotEmpty) {
+        var existingLengthIndex = dailyViews.length - 1;
+        // Assuming successful response with data
+        box.addAll(loadedDailyViews); // Adds new data to the Hive box
+        setState(() {
+          dailyViews = box.values.toList(); // Refresh the list from the box to include new items
+          _isDataLoaded = true;
+          _currentIndex = existingLengthIndex + 1;
+          _shouldUpdatePageController = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_shouldUpdatePageController) {
+            print('Here 1');
+            //_pageController = PageController(initialPage: _currentIndex);
+            _pageController.animateToPage(
+              _currentIndex,
+              duration: Duration(milliseconds: 900), // Duration of the animation
+              curve: Curves.easeInOut, // Animation curve
+            );
+            _shouldUpdatePageController = false; // Reset the flag
+            setState(() {}); // Trigger a rebuild with the updated PageController
+          }
+        });
 
-      // Calculate the starting index of the newly appended data
-      int newIndexStart = initialCount - loadedDailyViews.length;
-
-      setState(() {
-        dailyViews = box.values.toList();
-        _isDataLoaded = true;
-      });
-
-      // After the state is updated, jump to the starting index of the newly appended data
-      if (newIndexStart >= 0 && newIndexStart < dailyViews.length) {
-        _pageController.jumpToPage(newIndexStart);
       }
     } else {
-      // Handle error
+      setState(() {
+        _currentIndex = dailyViews.length - 1;
+        _shouldUpdatePageController = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_shouldUpdatePageController) {
+          print('Here 2');
+          print(_currentIndex);
+          //_pageController = PageController(initialPage: _currentIndex);
+          _pageController.animateToPage(
+            _currentIndex,
+            duration: Duration(milliseconds: 900), // Duration of the animation
+            curve: Curves.easeInOut, // Animation curve
+          );
+          setState(() {
+            _shouldUpdatePageController = false;
+          }); // Trigger a rebuild with the updated PageController
+        }
+      });
+      // No new data to add, but let's ensure the user is taken to the latest available view
+      if (_pageController.hasClients && dailyViews.isNotEmpty) {
+        setState(() {
+        });
+      }
     }
   }
 
