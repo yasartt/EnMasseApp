@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:en_masse_app/BarItems/rooms_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:flutter/material.dart';
@@ -6,74 +8,208 @@ import 'package:google_fonts/google_fonts.dart';
 import 'chat_page.dart';
 import 'daily_post.dart';
 import 'dart:convert';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:en_masse_app/Authentication/authentication.dart';
+import 'contact_daily_page.dart';
+import 'dart:math';
 import 'package:en_masse_app/config.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'dart:math' as math;
 import 'package:en_masse_app/Components/daily_view.dart';
 
-
 class ContactDaily extends StatefulWidget {
+  ContactDaily({Key? key}) : super(key: key);
+
   @override
   _ContactDailyState createState() => _ContactDailyState();
 }
 
-
 class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClientMixin {
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    return FirstTabContent();
+
+    /** DefaultTabController(
+        length: 2,
+        child: Scaffold(
+        appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: SizedBox.shrink(), // Empty SizedBox to remove the title
+        bottom: TabBar(
+        tabs: [
+        Tab(
+        icon: Icon(Icons.nature_people_outlined, color: Theme.of(context).colorScheme.primary,),
+        ),
+        Tab(
+        icon: Icon(Icons.hail_outlined, color: Theme.of(context).colorScheme.primary),
+        ),
+        ],
+        ),
+        ),
+        ),
+        body: TabBarView(
+        children: [
+        // First tab content
+        FirstTabContent(),
+        // Second tab content
+        SecondTabContent(), // Pass the contactList to SecondTabContent
+        ],
+        ),
+        ),
+        );*/
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}
+
+class FirstTabContent extends StatefulWidget {
+  @override
+  _FirstTabContentState createState() => _FirstTabContentState();
+}
+
+class _FirstTabContentState extends State<FirstTabContent> {
   List<DailyView> dailyViews = [];
   PageController _pageController = PageController();
-  bool _isFieldVisible = false;
+  bool _isDataLoaded = false;
+  StreamSubscription? _boxSubscription; // Declare a subscription variable
+  int _currentIndex = 0;
+  bool _shouldUpdatePageController = false; // Flag to indicate when to update the PageController
 
   @override
   void initState() {
     super.initState();
-    fetchDailyViews();
-    _pageController = PageController();
+    _initializeDataAndListenToBox();
+  }
+
+  void _initializeDataAndListenToBox() async {
+    final userId = await AuthService.getUserId();
+    if (userId == null) return;
+
+    final box = Hive.box<DailyView>('contactsPosts');
+    _updateDailyViewsList(box.values.toList());
+
+    _boxSubscription = box.watch().listen((event) {
+      _updateDailyViewsList(box.values.toList());
+    });
+
+    await fetchDailyViews();
+  }
+
+  void _updateDailyViewsList(List<DailyView> updatedList) {
+    setState(() {
+      dailyViews = updatedList;
+      _isDataLoaded = true;
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _boxSubscription?.cancel(); // Cancel the subscription when disposing
     super.dispose();
   }
 
-  void _toggleFieldVisibility() {
-    setState(() {
-      _isFieldVisible = !_isFieldVisible;
-    });
-  }
-
-
   Future<void> fetchDailyViews() async {
     final userId = await AuthService.getUserId();
-
     if (userId == null) {
       // Handle the case where userId is null (not authenticated)
       return;
     }
 
-    final lastTime = DateTime.now(); // Replace with the actual DateTime you want to use
+    final box = Hive.box<DailyView>('contactsPosts');
 
-    final response = await http.get(Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetContactDailiesByUser/$userId/$lastTime'));
+    final oneWeekAgo = DateTime.now().subtract(Duration(days: 7));
 
+    List<dynamic> keysToDelete = [];
+
+    box.toMap().forEach((key, dailyView) {
+      if (dailyView.created != null && dailyView.created!.isBefore(oneWeekAgo)) {
+        keysToDelete.add(key);
+      }
+    });
+
+    for (var key in keysToDelete) {
+      await box.delete(key);
+    }
+
+    final lastTime = dailyViews.isNotEmpty ? dailyViews.last.created?.toIso8601String() : null;
+    final lastDailyId = dailyViews.isNotEmpty ? dailyViews.last.dailyId : null;
+
+    final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
+    final body = jsonEncode({
+      'userId': userId,
+      'lastTime': lastTime,
+      'lastDailyId': lastDailyId
+    });
+
+    final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: body);
+    print('Try');
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       List<DailyView> loadedDailyViews = data.map((json) => DailyView.fromJson(json)).toList();
 
-      setState(() {
-        dailyViews = loadedDailyViews;
-      });
+      if (loadedDailyViews.isNotEmpty) {
+        var existingLengthIndex = dailyViews.length - 1;
+        // Assuming successful response with data
+        box.addAll(loadedDailyViews); // Adds new data to the Hive box
+        setState(() {
+          dailyViews = box.values.toList(); // Refresh the list from the box to include new items
+          _isDataLoaded = true;
+          _currentIndex = existingLengthIndex + 1;
+          _shouldUpdatePageController = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_shouldUpdatePageController) {
+            print('Here 1');
+            //_pageController = PageController(initialPage: _currentIndex);
+            _pageController.animateToPage(
+              _currentIndex,
+              duration: Duration(milliseconds: 900), // Duration of the animation
+              curve: Curves.easeInOut, // Animation curve
+            );
+            _shouldUpdatePageController = false; // Reset the flag
+            setState(() {}); // Trigger a rebuild with the updated PageController
+          }
+        });
+
+      }
     } else {
-      // Handle error
+      setState(() {
+        _currentIndex = dailyViews.length - 1;
+        _shouldUpdatePageController = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_shouldUpdatePageController) {
+          print('Here 2');
+          print(_currentIndex);
+          //_pageController = PageController(initialPage: _currentIndex);
+          _pageController.animateToPage(
+            _currentIndex,
+            duration: Duration(milliseconds: 900), // Duration of the animation
+            curve: Curves.easeInOut, // Animation curve
+          );
+          setState(() {
+            _shouldUpdatePageController = false;
+          }); // Trigger a rebuild with the updated PageController
+        }
+      });
+      // No new data to add, but let's ensure the user is taken to the latest available view
+      if (_pageController.hasClients && dailyViews.isNotEmpty) {
+        setState(() {
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    final screenHeight = MediaQuery.of(context).size.height;
     return Column(
       children: [
         AppBar(
@@ -86,19 +222,23 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .primary,
                       width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 6.0),
                   child: Text('Your Contacts'),
                 ),
               ),
               Positioned(
-                left: 0, // Aligns the IconButton to the left
+                left: 0,
                 child: IconButton(
-                  icon: Icon(Icons.home),
+                  icon: Icon(Icons.emoji_people),
                   onPressed: () {
                     // Your icon button action here
                   },
@@ -116,31 +256,18 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
               return AnimatedBuilder(
                 animation: _pageController,
                 builder: (context, child) {
-                  double pageOffset = index - (_pageController.page ?? 0);
-                  double scale = 1.0;
-                  double opacity = 1.0;
-                  double translateX = 0.0;
-                  double translateY = 0.0;
-
-                  if (pageOffset > 0) {
-                    scale = 1 - (pageOffset / 3);
-                    opacity = 1 - (pageOffset);
-                    //translateX = -(MediaQuery.of(context).size.width / 2) * pageOffset;
-                  } else if (pageOffset < 0) {
-                    scale = 1 - (-pageOffset / 10);
-                    opacity = 1 - (-pageOffset);
-                    //translateX = -(MediaQuery.of(context).size.width / 2) * -pageOffset;
-                    translateY = (MediaQuery.of(context).size.height / 2) * -pageOffset;
+                  if (!_pageController.hasClients) {
+                    return Container(); // Or some placeholder widget
                   }
+                  double pageOffset = index - (_pageController.page ?? 0);
+                  double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
+                  double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
 
-                  return Transform.scale(
-                    scale: scale.clamp(0.0, 1.0),
-                    child: Opacity(
-                      opacity: opacity.clamp(0.0, 1.0),
-                      child: Transform.translate(
-                        offset: Offset(translateX, translateY),
-                        child: child,
-                      ),
+                  return Opacity(
+                    opacity: opacity,
+                    child: Transform.scale(
+                      scale: scale,
+                      child: child,
                     ),
                   );
                 },
@@ -149,146 +276,45 @@ class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClie
             },
           ),
         ),
-        /**Align(
-          alignment: Alignment.bottomLeft,
-          child: Container(
-            height: 48,
-            width: 48,
-            margin: EdgeInsets.only(left: 8.0, bottom: 0.0),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Theme.of(context).colorScheme.primary),
-                left: BorderSide(color: Theme.of(context).colorScheme.primary),
-                right: BorderSide(color: Theme.of(context).colorScheme.primary),
-              ),
-              //borderRadius: BorderRadius.circular(5.0),
-              //shape: BoxShape.circle,
-            ),
-            child: Center( // Wrap the CustomToggleButton with a Center widget
-              child: CustomToggleButton(
-                isExpanded: _isFieldVisible,
-                onTap: _toggleFieldVisibility,
-                //icon: _isFieldVisible ? Icons.arrow_upward : Icons.arrow_downward_sharp,
-              ),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                    color: Theme.of(context).colorScheme.primary
-                ),
-              ),
-            ),
-            child: AnimatedContainer(
-              margin: EdgeInsets.only(left: 8.0, right: 8.0),
-              duration: Duration(milliseconds: 300),
-              height: _isFieldVisible ? 60 : 0, // Adjust the height as needed
-              curve: Curves.easeInOut,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.attach_file, color: Theme.of(context).colorScheme.primary,), // Choose your left icon
-                          onPressed: () {
-                            // Action for the left icon button
-                          },
-                        ),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(hintText: 'Enter something...'),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Action for the right button
-                          },
-                          child: Text('Share'), // Text for the right button
-                        ),
-                      ],
-                    ),
-                    //SizedBox(height: 10),
-                    // If you need more widgets below, add them here
-                  ],
-                ),
-              ),
-            ),
-          )
-        ),*/
-        Padding(
-          padding: EdgeInsets.all(32.0),
-        )
       ],
     );
   }
-
-  @override
-  bool get wantKeepAlive => true; // Keep the state of the widget across different tabs
 }
 
-class CustomToggleButton extends StatefulWidget {
-  final bool isExpanded;
-  final VoidCallback onTap;
-  //final IconData icon;
-
-  const CustomToggleButton({
-    Key? key,
-    required this.isExpanded,
-    required this.onTap,
-    //required this.icon,
-  }) : super(key: key);
-
-  @override
-  State<CustomToggleButton> createState() => _CustomToggleButtonState();
-}
-
-class _CustomToggleButtonState extends State<CustomToggleButton> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _iconTurns;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(duration: const Duration(milliseconds: 250), vsync: this);
-    _iconTurns = Tween<double>(begin: 0.0, end: 0.5).animate(_animationController);
-  }
-
-  @override
-  void didUpdateWidget(covariant CustomToggleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isExpanded != oldWidget.isExpanded) {
-      if (widget.isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    }
-  }
+class SecondTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: AnimatedBuilder(
-        animation: _animationController,
-        builder: (_, child) {
-          return RotationTransition(
-            turns: _iconTurns,
-            child: Icon(Icons.arrow_upward, size: 24, color: Theme.of(context).colorScheme.primary,),
-          );
-        },
+    return Scaffold(
+      appBar: AppBar(
+        //backgroundColor: Colors.black, // Set background color
+        elevation: 0,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+              child: Text(
+                  'People For You'
+              ),
+            ),
+          ],
+        ),
       ),
-      onPressed: widget.onTap,
+      /**body: Column(
+          children: [
+          Expanded(
+          child: ,a
+          ),
+          ],
+          ),*/
     );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 }

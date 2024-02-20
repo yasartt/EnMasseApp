@@ -92,7 +92,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
     final userId = await AuthService.getUserId();
     if (userId == null) return;
 
-    final box = Hive.box<DailyView>('dailyViews');
+    final box = Hive.box<DailyView>('entheriaPosts');
     _updateDailyViewsList(box.values.toList());
 
     _boxSubscription = box.watch().listen((event) {
@@ -123,7 +123,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
       return;
     }
 
-    final box = Hive.box<DailyView>('dailyViews');
+    final box = Hive.box<DailyView>('entheriaPosts');
 
     final oneWeekAgo = DateTime.now().subtract(Duration(days: 7));
 

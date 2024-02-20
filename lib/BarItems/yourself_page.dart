@@ -112,8 +112,11 @@ class YourselfPage extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 // Clear the Hive box for DailyViews
-                var box = await Hive.openBox<DailyView>('dailyViews');
+                var box = await Hive.openBox<DailyView>('entheriaPosts');
                 await box.clear();
+
+                var box2 = await Hive.openBox<DailyView>('contactsPosts');
+                await box2.clear();
 
                 // Perform logout actions
                 AuthService.logout(); // Implement your logout logic here

@@ -127,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               widget.title,
@@ -135,6 +135,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 textStyle: TextStyle(
                   fontSize: 20.0,
                 ),
+              ),
+            ),
+            Text(
+              "Week 12",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontStyle: FontStyle.italic,
               ),
             ),
           ],
