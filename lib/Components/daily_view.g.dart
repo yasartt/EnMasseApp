@@ -18,7 +18,7 @@ class DailyViewAdapter extends TypeAdapter<DailyView> {
     };
     return DailyView(
       dailyId: fields[0] as int,
-      userId: fields[1] as int,
+      userId: fields[1] as String,
       caption: fields[2] as String?,
       created: fields[3] as DateTime?,
       images: (fields[4] as List?)?.cast<ImageDTO>(),

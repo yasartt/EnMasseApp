@@ -7,7 +7,7 @@ class DailyView {
   @HiveField(0)
   final int dailyId;
   @HiveField(1)
-  final int userId;
+  final String userId;
   @HiveField(2)
   final String? caption;
   @HiveField(3)

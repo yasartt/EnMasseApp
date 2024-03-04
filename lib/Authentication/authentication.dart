@@ -118,14 +118,14 @@ class AuthService {
     await prefs.setString('username', username);
   }
 
-  static Future<void> saveUserId(int userId) async {
+  static Future<void> saveUserId(String userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('userId', userId);
+    await prefs.setString('userId', userId);
   }
 
-  static Future<int?> getUserId() async {
+  static Future<String?> getUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('userId');
+    return prefs.getString('userId');
   }
 
   static Future<void> saveEmail(String email) async {

@@ -81,6 +81,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
   StreamSubscription? _boxSubscription; // Declare a subscription variable
   int _currentIndex = 0;
   bool _shouldUpdatePageController = false; // Flag to indicate when to update the PageController
+  int _newItemsCount = 0;
 
   @override
   void initState() {
@@ -92,7 +93,8 @@ class _FirstTabContentState extends State<FirstTabContent> {
     final userId = await AuthService.getUserId();
     if (userId == null) return;
 
-    final box = Hive.box<DailyView>('entheriaPosts');
+    // Ensure the Hive box for DailyView is opened before accessing it
+    final box = await Hive.openBox<DailyView>('entheriaPosts');
     _updateDailyViewsList(box.values.toList());
 
     _boxSubscription = box.watch().listen((event) {
@@ -101,6 +103,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
 
     await fetchDailyViews();
   }
+
 
   void _updateDailyViewsList(List<DailyView> updatedList) {
     setState(() {
@@ -154,6 +157,8 @@ class _FirstTabContentState extends State<FirstTabContent> {
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       List<DailyView> loadedDailyViews = data.map((json) => DailyView.fromJson(json)).toList();
+
+      _newItemsCount = loadedDailyViews.length;
 
       if (loadedDailyViews.isNotEmpty) {
         var existingLengthIndex = dailyViews.length - 1;
@@ -232,7 +237,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
                   ),
                   padding: EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 6.0),
-                  child: Text('Entherians'),
+                  child: Text('Explore People'),
                 ),
               ),
               Positioned(

@@ -92,7 +92,8 @@ class _FirstTabContentState extends State<FirstTabContent> {
     final userId = await AuthService.getUserId();
     if (userId == null) return;
 
-    final box = Hive.box<DailyView>('contactsPosts');
+    // Ensure the Hive box for DailyView is opened before accessing it
+    final box = await Hive.openBox<DailyView>('contactsPosts');
     _updateDailyViewsList(box.values.toList());
 
     _boxSubscription = box.watch().listen((event) {
@@ -101,6 +102,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
 
     await fetchDailyViews();
   }
+
 
   void _updateDailyViewsList(List<DailyView> updatedList) {
     setState(() {

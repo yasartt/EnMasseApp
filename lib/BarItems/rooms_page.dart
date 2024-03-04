@@ -100,7 +100,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
                     itemCount: cafeList.length,
                     itemBuilder: (context, index) {
                       final cafeName = cafeList[index]['name'] as String?;
-                      final cafeId = cafeList[index]['cafeId'] as int?;
+                      final cafeId = cafeList[index]['cafeId'] as String?;
 
                       if (cafeName != null && cafeId != null) {
                         return GestureDetector(
@@ -161,7 +161,7 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
 }
 
 class CafeComponent extends StatelessWidget {
-  final int cafeId;
+  final String cafeId;
   final String cafeName;
 
   CafeComponent({
@@ -282,7 +282,7 @@ class MessageBubble extends StatelessWidget {
 
 
 class CafeDetailsPage extends StatelessWidget {
-  final int cafeId;
+  final String cafeId;
   final String cafeName; // Add cafeName property
 
   CafeDetailsPage({

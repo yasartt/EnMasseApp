@@ -84,15 +84,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: customCoolYellow,
-        fontFamily: GoogleFonts.roboto().fontFamily,
+        fontFamily: GoogleFonts.lato().fontFamily,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: customDarkCoolYellow,
-        fontFamily: GoogleFonts.roboto().fontFamily,
+        fontFamily: GoogleFonts.lato().fontFamily,
       ),
       themeMode: ThemeMode.system, // Use system theme mode
-      home: isAuthenticated ? MyHomePage(title: 'Enteract') : LoginPage(),
+      home: isAuthenticated ? MyHomePage(title: 'En Masse') : LoginPage(),
     );
   }
 }
@@ -127,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               widget.title,
@@ -135,13 +135,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 textStyle: TextStyle(
                   fontSize: 20.0,
                 ),
-              ),
-            ),
-            Text(
-              "Week 12",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontStyle: FontStyle.italic,
               ),
             ),
           ],
@@ -185,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.travel_explore),
-            label: 'Entheria',
+            label: 'Explore',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.local_cafe_outlined),

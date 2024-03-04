@@ -43,7 +43,7 @@ class ActionPostScreen extends StatelessWidget {
           child: Card(
             margin: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+              borderRadius: BorderRadius.circular(8.0),
             ),
             elevation: 8.0,
             child: Column(
