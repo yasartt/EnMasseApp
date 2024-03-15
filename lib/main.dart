@@ -41,7 +41,6 @@ void main() async {
   runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
-
 Map<int, Color> coolYellowSwatch = {
   50: Color(0xFFFFF9E8), // Lightest
   100: Color(0xFFFFF3C2),
@@ -112,7 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController();
   final List<Widget> _pages = [
     ContactDaily(),
-    ExplorePage(),
     RoomsPage(),
     OutsidePage(),
     YourselfPage(),
@@ -175,10 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.today_outlined),
             label: 'Daily',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.travel_explore),
-            label: 'Explore',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.local_cafe_outlined),

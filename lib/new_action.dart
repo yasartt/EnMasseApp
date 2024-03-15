@@ -41,7 +41,7 @@ class _NewActionPageState extends State<NewActionPage> {
     final String url = 'https://${Config.apiBaseUrl}/api/Daily/AddNewDaily';
     String caption = _captionController.text;
 
-    int? userId = await AuthService.getUserId();
+    String? userId = await AuthService.getUserId();
 
     List<Map<String, dynamic>> imageList = [];
     for (int index = 0; index < uploadedPhotos.length; index++) {

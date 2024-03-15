@@ -1,10 +1,13 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:en_masse_app/config.dart';
+import 'package:flutter/material.dart';
+import 'package:en_masse_app/signalr_service.dart';
+
+import '../Authentication/authentication.dart';
 
 class RoomsPage extends StatefulWidget {
   RoomsPage({Key? key}) : super(key: key);
@@ -130,8 +133,32 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
                           child: CafeComponent(
                             cafeId: cafeId,
                             cafeName: cafeName,
-                            // Add other properties as needed
+                            onJoinCafe: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Join Cafe'),
+                                  content: Text('Are you sure you want to join this cafe?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: Text('No'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: Text('Yes'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                Navigator.of(context).pop(true); // Close the dialog
+                                SignalRService().joinCafeGroup(cafeId, AuthService.getUserId() as String); // Join the cafe group
+                              }
+                            },
                           ),
+
                         );
                       } else {
                         // Handle the case where 'name' or 'id' is null (if needed)
@@ -142,12 +169,12 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
                 ),
               ),
               // Centered Text Widget
-              Center(
+              /**Center(
                 child: Text(
                   '2 Days Until Next Week',
                   style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                 ),
-              ),
+              ),*/
             ],
           ),
         ),
@@ -163,43 +190,39 @@ class _RoomsPageState extends State<RoomsPage> with AutomaticKeepAliveClientMixi
 class CafeComponent extends StatelessWidget {
   final String cafeId;
   final String cafeName;
+  final VoidCallback onJoinCafe; // Callback for when the join button is pressed
 
   CafeComponent({
     required this.cafeId,
     required this.cafeName,
+    required this.onJoinCafe,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Handle the tap event. Navigate to the new page and pass cafeId.
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CafeDetailsPage(cafeId: cafeId, cafeName: cafeName,),
-          ),
-        );
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0), // Adjust border radius as needed
-          side: BorderSide(
-            //color: Colors.blue, // Change the border color
-            //width: 2.0,
-          ),
-        ),
-        margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust margin as needed
-        elevation: 30.0, // Add shadow by adjusting elevation
-        child: Container(
-          height: 100, // Adjust height as needed
-          child: ListTile(
-            title: Text(
-              cafeName,
-              style: TextStyle(fontSize: 18.0), // Adjust font size as needed
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      elevation: 30.0,
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        height: 100,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                cafeName,
+                style: TextStyle(fontSize: 18.0),
+              ),
             ),
-            // Add other widgets for additional cafe details
-          ),
+            TextButton(
+              onPressed: () => onJoinCafe(),
+              child: Text('Join'),
+            ),
+          ],
         ),
       ),
     );
@@ -280,36 +303,91 @@ class MessageBubble extends StatelessWidget {
   }
 }
 
-
-class CafeDetailsPage extends StatelessWidget {
+class CafeDetailsPage extends StatefulWidget {
   final String cafeId;
-  final String cafeName; // Add cafeName property
+  final String cafeName;
 
-  CafeDetailsPage({
-    required this.cafeId,
-    required this.cafeName, // Initialize cafeName
-  });
+  CafeDetailsPage({Key? key, required this.cafeId, required this.cafeName}) : super(key: key);
+
+  @override
+  _CafeDetailsPageState createState() => _CafeDetailsPageState();
+}
+
+class _CafeDetailsPageState extends State<CafeDetailsPage> {
+  late SignalRService _signalRService;
+  final TextEditingController _messageController = TextEditingController();
+  List<Map<String, String>> messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _signalRService = SignalRService();
+
+    _signalRService.onMessageReceived = (userName, message) {
+      setState(() {
+        messages.add({'userName': userName, 'message': message});
+      });
+    };
+
+    _signalRService.startConnection().then((_) {
+      _signalRService.joinCafeGroup(widget.cafeId, AuthService.getUserId() as String);
+    });
+  }
+
+  @override
+  void dispose() {
+    _signalRService.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.isNotEmpty) {
+      _signalRService.sendMessage(widget.cafeId, "YourUserName", _messageController.text);
+      _messageController.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Example usage of MessageBubble
     return Scaffold(
       appBar: AppBar(
-        title: Text(cafeName), // Set the title to cafeName
+        title: Text(widget.cafeName),
       ),
       body: Column(
         children: [
-          MessageBubble(
-            senderUsername: 'John Doe',
-            message: 'Hello there!',
-            time: '12:34', // Replace with the actual time
+          Expanded(
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                var message = messages[index];
+                return ListTile(
+                  title: Text(message['userName'] ?? 'Unknown'),
+                  subtitle: Text(message['message'] ?? ''),
+                );
+              },
+            ),
           ),
-          MessageBubble(
-            senderUsername: 'Jane Smith',
-            message: 'How are you? How are you? How are you? How are you? How are you? How are you? How are you? How are you?',
-            time: '13:45', // Replace with the actual time
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: InputDecoration(
+                      labelText: 'Type a message',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
           ),
-          // Add more MessageBubble widgets for additional messages
         ],
       ),
     );

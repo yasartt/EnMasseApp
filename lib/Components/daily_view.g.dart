@@ -17,7 +17,7 @@ class DailyViewAdapter extends TypeAdapter<DailyView> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return DailyView(
-      dailyId: fields[0] as int,
+      dailyId: fields[0] as String,
       userId: fields[1] as String,
       caption: fields[2] as String?,
       created: fields[3] as DateTime?,

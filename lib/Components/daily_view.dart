@@ -5,7 +5,7 @@ part 'daily_view.g.dart'; // This file will be generated
 @HiveType(typeId: 0)
 class DailyView {
   @HiveField(0)
-  final int dailyId;
+  final String dailyId;
   @HiveField(1)
   final String userId;
   @HiveField(2)

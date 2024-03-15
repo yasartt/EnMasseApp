@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:en_masse_app/BarItems/explore_daily_page.dart';
 import 'package:en_masse_app/BarItems/rooms_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:flutter/material.dart';
@@ -24,45 +24,74 @@ class ContactDaily extends StatefulWidget {
   _ContactDailyState createState() => _ContactDailyState();
 }
 
+class RoundedIndicator extends Decoration {
+  final Color color; // Add a color field to pass to the painter
+
+  RoundedIndicator({required this.color}); // Constructor requires a color
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
+    return _RoundedPainter(this, color, onChanged); // Pass the color to the painter
+  }
+}
+
+
+class _RoundedPainter extends BoxPainter {
+  final RoundedIndicator decoration;
+  final Color color; // Add a color field
+
+  _RoundedPainter(this.decoration, this.color, VoidCallback? onChanged)
+      : super(onChanged);
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final Paint paint = Paint()
+      ..color = color // Use the passed color
+      ..style = PaintingStyle.fill;
+    final Rect rect = offset & configuration.size!;
+    final RRect roundedRect = RRect.fromRectAndRadius(rect, Radius.circular(8));
+    canvas.drawRRect(roundedRect, paint);
+  }
+}
+
+
 class _ContactDailyState extends State<ContactDaily> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    return FirstTabContent();
-
-    /** DefaultTabController(
+    return
+      DefaultTabController(
         length: 2,
         child: Scaffold(
-        appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: SizedBox.shrink(), // Empty SizedBox to remove the title
-        bottom: TabBar(
-        tabs: [
-        Tab(
-        icon: Icon(Icons.nature_people_outlined, color: Theme.of(context).colorScheme.primary,),
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight),
+            child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: SizedBox.shrink(), // Empty SizedBox to remove the title
+            bottom: TabBar(
+              //indicator: RoundedIndicator(color: Theme.of(context).colorScheme.primary),
+              tabs: [
+                Tab(
+                  icon: Icon(Icons.hail),
+                ),
+                Tab(
+                  icon: Icon(Icons.travel_explore)
+                ),
+              ],
+            ),
+            ),
+          ),
+          body: TabBarView(
+          children: [
+            FirstTabContent(),
+            ExplorePage(),
+          ],
+          ),
         ),
-        Tab(
-        icon: Icon(Icons.hail_outlined, color: Theme.of(context).colorScheme.primary),
-        ),
-        ],
-        ),
-        ),
-        ),
-        body: TabBarView(
-        children: [
-        // First tab content
-        FirstTabContent(),
-        // Second tab content
-        SecondTabContent(), // Pass the contactList to SecondTabContent
-        ],
-        ),
-        ),
-        );*/
+      );
   }
 
   @override
@@ -144,7 +173,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
     final lastTime = dailyViews.isNotEmpty ? dailyViews.last.created?.toIso8601String() : null;
     final lastDailyId = dailyViews.isNotEmpty ? dailyViews.last.dailyId : null;
 
-    final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetEntheriaDailiesByUser');
+    final url = Uri.parse('https://${Config.apiBaseUrl}/api/Daily/GetContactDailiesByUser');
     final body = jsonEncode({
       'userId': userId,
       'lastTime': lastTime,
@@ -212,76 +241,79 @@ class _FirstTabContentState extends State<FirstTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AppBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          title: Stack(
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .primary,
-                      width: 2.0,
+    return
+      Column(
+          children: [
+            /*AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              title: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme
+                              .of(context)
+                              .colorScheme
+                              .primary,
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 6.0),
+                      child: Text('Your Contacts'),
                     ),
-                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 6.0),
-                  child: Text('Your Contacts'),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                child: IconButton(
-                  icon: Icon(Icons.emoji_people),
-                  onPressed: () {
-                    // Your icon button action here
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            itemCount: dailyViews.length,
-            itemBuilder: (context, index) {
-              return AnimatedBuilder(
-                animation: _pageController,
-                builder: (context, child) {
-                  if (!_pageController.hasClients) {
-                    return Container(); // Or some placeholder widget
-                  }
-                  double pageOffset = index - (_pageController.page ?? 0);
-                  double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
-                  double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
-
-                  return Opacity(
-                    opacity: opacity,
-                    child: Transform.scale(
-                      scale: scale,
-                      child: child,
+                  /**Positioned(
+                    left: 0,
+                    child: IconButton(
+                      icon: Icon(Icons.sunny_snowing),
+                      onPressed: () {
+                        // Your icon button action here
+                      },
                     ),
+                  ),*/
+                ],
+              ),
+            ),*/
+
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: dailyViews.length,
+                itemBuilder: (context, index) {
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      if (!_pageController.hasClients) {
+                        return Container(); // Or some placeholder widget
+                      }
+                      double pageOffset = index - (_pageController.page ?? 0);
+                      double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
+                      double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
+
+                      return Opacity(
+                        opacity: opacity,
+                        child: Transform.scale(
+                          scale: scale,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: ActionPostScreen(dailyView: dailyViews[index]),
                   );
                 },
-                child: ActionPostScreen(dailyView: dailyViews[index]),
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+            ),
+          ],
     );
   }
 }
+
 
 class SecondTabContent extends StatelessWidget {
 

@@ -217,7 +217,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AppBar(
+        /**AppBar(
           elevation: 0,
           backgroundColor: Colors.transparent,
           title: Stack(
@@ -240,7 +240,7 @@ class _FirstTabContentState extends State<FirstTabContent> {
                   child: Text('Explore People'),
                 ),
               ),
-              Positioned(
+              /**Positioned(
                 left: 0,
                 child: IconButton(
                   icon: Icon(Icons.sunny_snowing),
@@ -248,10 +248,10 @@ class _FirstTabContentState extends State<FirstTabContent> {
                     // Your icon button action here
                   },
                 ),
-              ),
+              ),*/
             ],
           ),
-        ),
+        ),*/
         Expanded(
           child: PageView.builder(
                 controller: _pageController,
