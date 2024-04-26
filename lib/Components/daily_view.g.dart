@@ -71,7 +71,7 @@ class ImageDTOAdapter extends TypeAdapter<ImageDTO> {
     return ImageDTO(
       id: fields[0] as String,
       imageName: fields[1] as String,
-      dailyId: fields[2] as int,
+      dailyId: fields[2] as String,
     );
   }
 

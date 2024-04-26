@@ -51,7 +51,7 @@ class ImageDTO {
   @HiveField(1)
   final String imageName;
   @HiveField(2)
-  final int dailyId;
+  final String dailyId;
 
   ImageDTO({
     required this.id,

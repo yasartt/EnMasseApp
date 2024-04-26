@@ -1,6 +1,5 @@
 import 'dart:async';
-
-import 'package:en_masse_app/BarItems/rooms_page.dart';
+import 'package:en_masse_app/BarItems/Cafe/rooms_page.dart';
 import 'package:en_masse_app/Components/Action_post.dart';
 import 'package:flutter/material.dart';
 import 'card_details_page.dart';
@@ -26,55 +25,6 @@ class ExplorePage extends StatefulWidget {
 
 class _ExplorePageState extends State<ExplorePage> with AutomaticKeepAliveClientMixin {
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-
-    return FirstTabContent();
-
-    /** DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: SizedBox.shrink(), // Empty SizedBox to remove the title
-            bottom: TabBar(
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.nature_people_outlined, color: Theme.of(context).colorScheme.primary,),
-                ),
-                Tab(
-                  icon: Icon(Icons.hail_outlined, color: Theme.of(context).colorScheme.primary),
-                ),
-              ],
-            ),
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            // First tab content
-            FirstTabContent(),
-            // Second tab content
-            SecondTabContent(), // Pass the contactList to SecondTabContent
-          ],
-        ),
-      ),
-    );*/
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-}
-
-class FirstTabContent extends StatefulWidget {
-  @override
-  _FirstTabContentState createState() => _FirstTabContentState();
-}
-
-class _FirstTabContentState extends State<FirstTabContent> {
   List<DailyView> dailyViews = [];
   PageController _pageController = PageController();
   bool _isDataLoaded = false;
@@ -218,108 +168,74 @@ class _FirstTabContentState extends State<FirstTabContent> {
     return Column(
       children: [
         /**AppBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          title: Stack(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            title: Stack(
             children: [
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .primary,
-                      width: 2.0,
-                    ),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 6.0),
-                  child: Text('Explore People'),
-                ),
-              ),
-              /**Positioned(
-                left: 0,
-                child: IconButton(
-                  icon: Icon(Icons.sunny_snowing),
-                  onPressed: () {
-                    // Your icon button action here
-                  },
-                ),
-              ),*/
+            Align(
+            alignment: Alignment.center,
+            child: Container(
+            decoration: BoxDecoration(
+            border: Border.all(
+            color: Theme
+            .of(context)
+            .colorScheme
+            .primary,
+            width: 2.0,
+            ),
+            borderRadius: BorderRadius.circular(10.0),
+            ),
+            padding: EdgeInsets.symmetric(
+            horizontal: 12.0, vertical: 6.0),
+            child: Text('Explore People'),
+            ),
+            ),
+            /**Positioned(
+            left: 0,
+            child: IconButton(
+            icon: Icon(Icons.sunny_snowing),
+            onPressed: () {
+            // Your icon button action here
+            },
+            ),
+            ),*/
             ],
-          ),
-        ),*/
+            ),
+            ),*/
         Expanded(
           child: PageView.builder(
-                controller: _pageController,
-                scrollDirection: Axis.vertical,
-                itemCount: dailyViews.length,
-                itemBuilder: (context, index) {
-                  return AnimatedBuilder(
-                    animation: _pageController,
-                    builder: (context, child) {
-                      if (!_pageController.hasClients) {
-                        return Container(); // Or some placeholder widget
-                      }
-                      double pageOffset = index - (_pageController.page ?? 0);
-                      double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
-                      double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            itemCount: dailyViews.length,
+            itemBuilder: (context, index) {
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  if (!_pageController.hasClients) {
+                    return Container(); // Or some placeholder widget
+                  }
+                  double pageOffset = index - (_pageController.page ?? 0);
+                  double scale = max(1 - (pageOffset.abs() * 0.3), 0.7);
+                  double opacity = max(1 - (pageOffset.abs() * 0.5), 0.5);
 
-                      return Opacity(
-                        opacity: opacity,
-                        child: Transform.scale(
-                          scale: scale,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: ActionPostScreen(dailyView: dailyViews[index]),
+                  return Opacity(
+                    opacity: opacity,
+                    child: Transform.scale(
+                      scale: scale,
+                      child: child,
+                    ),
                   );
                 },
-              ),
+                child: ActionPostScreen(dailyView: dailyViews[index]),
+              );
+            },
           ),
+        ),
       ],
     );
   }
-}
-
-class SecondTabContent extends StatelessWidget {
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        //backgroundColor: Colors.black, // Set background color
-        elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-              child: Text(
-                  'People For You'
-              ),
-            ),
-          ],
-        ),
-      ),
-      /**body: Column(
-          children: [
-          Expanded(
-          child: ,a
-          ),
-          ],
-          ),*/
-    );
-  }
+  bool get wantKeepAlive => true;
 }
+
